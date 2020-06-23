@@ -5,6 +5,26 @@
 	<><|^-^|><>
 */
 
+> general description
+	> soulplotter is a synthesizer & sequencer, based entirely on atmega328p
+	> this project has a threefold purpose;
+		> 1: for my own sake
+			> i love synthesizers with my whole entire heart - this project was borne out of passion
+			> it has also given me an understanding of the fundamentals of digital synthesis
+				> digital oscillators - wavetable, algorithmic & the phase accumulator
+				> digital envelopes - algorithmically generated & sampled shapes
+				> digital sequencing - utilizing cycle-timed interrupts to divide the clock
+				  into a pulse, as a function of bpm & clock frequency
+		> 2: for the sake of others
+			> this project is intended in part as practical education, specifically for teaching
+			  the miniutae of how digital synthesis actually works "under the hood"
+			> i take great care in my approach to commenting & program structure, to make it as
+			  comprehensible and approachable as i can
+			> i intend to package the fundamentals of my codebase into an arduino library, to
+			  give other folks accessible tools for building their own synth projects
+		> 3: demonstrating my programming ability to prospective employers
+			> this one is fairly self explanatory -w-
+------------------------------------------------------------------------------	
 > physical description:
 	> 39 momentary switches
 		> 17 for seq note entry / playing / alt functions
