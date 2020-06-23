@@ -7,6 +7,15 @@
 
 > general description
 	> soulplotter is a synthesizer & sequencer, based entirely on atmega328p
+		> presently comprised of 3 identical monophonic synth voices (tracks)
+		> each voice can be individually sequenced, with its own set of 18 parameters
+			> giving a total of 54 parameters - 6 input pots x 3 pages x 3 tracks
+		> the sequence length can be modified with fn shortcuts in realtime (while playing)
+			> currently 6 shortcuts - jump to 16, 32, 48 & 64 steps, and -/+ 1 step
+			> i plan to make the jumps programmable, eg, 12, 16, 18 & 20 steps - for
+			  rythmic variation of melodies during performance
+			> currently all tracks share the same length, but i will be changing to individual
+			  lengths soon
 	> this project has a threefold purpose;
 		> 1: for my own sake
 			> i love synthesizers with my whole entire heart - this project was borne out of passion
