@@ -867,7 +867,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 7;
           seqPageA_T3 = 6;
           seqPageB_T3 = 7;
-        } else {                            //page 3 to 0
+        } else {                //page 3 to 0
           page = 1;
           bitClear(ledState[0], 4);
           bitSet(ledState[0], 7);
