@@ -1341,18 +1341,23 @@ void updateUI(byte keyVal) {
 
 //BEGIN ISR()
 //--------------------------------------------------------------------------------------------------------
+  //interrupt service routine - executes sFreq times per second
+  //all DSP happens here - oscillators, envelopes, mixer & output
+  //sequencers also happen here
 //--------------------------------------------------------------------------------------------------------
-
 ISR(TIMER2_OVF_vect) {
   if (sptCounter < sptCounterMax) { //counts to sptCounterMax, then advances sequencer by 1 tick & resets sptCounter
-    sptCounter++;                   //thus relating the speed of the sequencer to the bpm
-  } else { //sptCounter overflow - trigger sequencer tick advance & reset sptCounter
-    if (((seqTicksT1 % 96) == 0) && (!bitRead(ledState[0], 0))) { //if start of quarter note - divisible by 96 ticks
-      bitSet(ledState[0], 0);                                   //only turns on LED once
+    sptCounter++;                   
+  } else {                          //sptCounter overflow - trigger sequencer tick advance & reset sptCounter
+    if (((seqTicksT1 % 96) == 0) && (!bitRead(ledState[0], 0))) {     //if start of quarter note - divisible by 96 ticks
+      bitSet(ledState[0], 0);                                         //turn on BPM LED
     } else if (bitRead(ledState[0], 0) && ((seqTicksT1 % 96) > 12)) { //if bpm led on & not first 16th note
-      bitClear(ledState[0], 0);                                     //turn off - doesn't turn on again til next quarter note
+      bitClear(ledState[0], 0);                                       //turn off - doesn't turn on again til next quarter note
     }
     sptCounter = 0; //reset sptCounter (to prepare for next tick)
+    
+    //track 1 sequencer
+    //--------------------------------------------------------------------------------
     if ((stepIndexT1 < seqOffsT1[seqStepT1]) && seqPlay) { //if the current stepIndex is less than the tick offset for the current step & the seq is playing
       stepIndexT1++;  //increment stepIndex (inter-step placement)
       seqTicksT1++;   //increment seqTicks (advance to next tick)
@@ -1401,6 +1406,8 @@ ISR(TIMER2_OVF_vect) {
         }
       }
     }
+    //track 2 sequencer
+    //--------------------------------------------------------------------------------
     if ((stepIndexT2 < seqOffsT2[seqStepT1]) && seqPlay) { //if the current stepIndex is less than the tick offset for the current step & the seq is playing
       stepIndexT2++;  //increment stepIndex (inter-step placement)
       seqTicksT2++;   //increment seqTicks (advance to next tick)
@@ -1449,6 +1456,8 @@ ISR(TIMER2_OVF_vect) {
         }
       }
     }
+    //track 3 sequencer
+    //--------------------------------------------------------------------------------
     if ((stepIndexT3 < seqOffsT3[seqStepT3]) && seqPlay) { //if the current stepIndex is less than the tick offset for the current step & the seq is playing
       stepIndexT3++;  //increment stepIndex (inter-step placement)
       seqTicksT3++;   //increment seqTicks (advance to next tick)
@@ -1498,32 +1507,15 @@ ISR(TIMER2_OVF_vect) {
       }
     }
   }
-
+  
+  //track 1 PWM oscillator
+  //--------------------------------------------------------------------------------
   pulseWidthT1_L = *(params3_T1) >> 2;
   pulseWidthT1_R = *(params3_T1 + 1) >> 2;
-  pulseWidthT2_L = *(params3_T2) >> 2;
-  pulseWidthT2_R = *(params3_T2 + 1) >> 2;
-  pulseWidthT3_L = *(params3_T3) >> 2;
-  pulseWidthT3_R = *(params3_T3 + 1) >> 2;
-
-  phaseAccT1_L = phaseAccT1_L + tWordT1_L;  //increment all phase accumulators
+  phaseAccT1_L = phaseAccT1_L + tWordT1_L;  //increment phase accumulator
   phaseAccT1_R = phaseAccT1_R + tWordT1_R;
-
-  phaseAccT2_L = phaseAccT2_L + tWordT2_L;
-  phaseAccT2_R = phaseAccT2_R + tWordT2_R;
-
-  phaseAccT3_L = phaseAccT3_L + tWordT3_L;
-  phaseAccT3_R = phaseAccT3_R + tWordT3_R;
-
   phaseT1_L = phaseAccT1_L >> 8; //(top 8 bits)
   phaseT1_R = phaseAccT1_R >> 8;
-
-  phaseT2_L = phaseAccT2_L >> 8;
-  phaseT2_R = phaseAccT2_R >> 8;
-
-  phaseT3_L = phaseAccT3_L >> 8;
-  phaseT3_R = phaseAccT3_R >> 8;
-
   if (phaseT1_L < pulseWidthT1_L) {
     ampT1_L = 255;
   } else {
@@ -1534,6 +1526,14 @@ ISR(TIMER2_OVF_vect) {
   } else {
     ampT1_R = 0;
   }
+  //track 2 PWM oscillator
+  //--------------------------------------------------------------------------------
+  pulseWidthT2_L = *(params3_T2) >> 2;
+  pulseWidthT2_R = *(params3_T2 + 1) >> 2;
+  phaseAccT2_L = phaseAccT2_L + tWordT2_L;
+  phaseAccT2_R = phaseAccT2_R + tWordT2_R;
+  phaseT2_L = phaseAccT2_L >> 8;
+  phaseT2_R = phaseAccT2_R >> 8;
   if (phaseT2_L < pulseWidthT2_L) {
     ampT2_L = 255;
   } else {
@@ -1544,6 +1544,14 @@ ISR(TIMER2_OVF_vect) {
   } else {
     ampT2_R = 0;
   }
+  //track 3 PWM oscillator
+  //--------------------------------------------------------------------------------
+  pulseWidthT3_L = *(params3_T3) >> 2;
+  pulseWidthT3_R = *(params3_T3 + 1) >> 2;
+  phaseAccT3_L = phaseAccT3_L + tWordT3_L;
+  phaseAccT3_R = phaseAccT3_R + tWordT3_R;
+  phaseT3_L = phaseAccT3_L >> 8;
+  phaseT3_R = phaseAccT3_R >> 8;
   if (phaseT3_L < pulseWidthT3_L) {
     ampT3_L = 255;
   } else {
@@ -1555,10 +1563,9 @@ ISR(TIMER2_OVF_vect) {
     ampT3_R = 0;
   }
 
+  //track 1 envelope
+  //--------------------------------------------------------------------------------
   env_speedT1 = (*(params2_T1 + 2)) >> 2;
-  env_speedT2 = (*(params2_T2 + 2)) >> 2;
-  env_speedT3 = (*(params2_T3 + 2)) >> 2;
-
   if (env_trigT1) { //update envelope val
     if ((env_cntT1 < env_speedT1) && ((env_valT1) != 0)) {
       env_cntT1++;
@@ -1571,7 +1578,9 @@ ISR(TIMER2_OVF_vect) {
       }
     }
   }
-
+  //track 2 envelope
+  //--------------------------------------------------------------------------------
+  env_speedT2 = (*(params2_T2 + 2)) >> 2;
   if (env_trigT2) { //update envelope val
     if ((env_cntT2 < env_speedT2) && ((env_valT2) != 0)) {
       env_cntT2++;
@@ -1584,6 +1593,9 @@ ISR(TIMER2_OVF_vect) {
       }
     }
   }
+  //track 3 envelope
+  //--------------------------------------------------------------------------------
+  env_speedT3 = (*(params2_T3 + 2)) >> 2;
   if (env_trigT3) { //update envelope val
     if ((env_cntT3 < env_speedT3) && ((env_valT3) != 0)) {
       env_cntT3++;
@@ -1597,11 +1609,8 @@ ISR(TIMER2_OVF_vect) {
     }
   }
 
-  //outputFilter_L[0] = outputFilter_L[1];
-  //outputFilter_L[1] = ((((sqrPts[phaseT1_L] & (env_valT1))&muteValT1) + ((sqrPts[phaseT2_L] & (env_valT2))&muteValT2) + ((sqrPts[phaseT3_L] & (env_valT3))&muteValT3) >> 2) + (outputFilter_L[0] >> 4));
-  OCR2A = (((ampT1_L & (env_valT1)) + (ampT2_L & (env_valT2)) + (ampT3_L & (env_valT3))) >> 2); //+ (outputFilter_L[0] >> 2));
-
-  //outputFilter_R[0] = outputFilter_R[1];
-  //outputFilter_R[1] = ((((sqrPts[phaseT1_R] & (env_valT1))&muteValT1) + ((sqrPts[phaseT2_R] & (env_valT2))&muteValT2) + ((sqrPts[phaseT3_R] & (env_valT3))&muteValT3) >> 2) + (outputFilter_R[0] >> 4));
-  OCR2B = (((ampT1_R & (env_valT1)) + (ampT2_R & (env_valT2)) + (ampT3_R & (env_valT3))) >> 2);  //+ (outputFilter_R[0] >> 2));
+  //output stage - stereo mix
+  //--------------------------------------------------------------------------------
+  OCR2A = (((ampT1_L & (env_valT1)) + (ampT2_L & (env_valT2)) + (ampT3_L & (env_valT3))) >> 2);
+  OCR2B = (((ampT1_R & (env_valT1)) + (ampT2_R & (env_valT2)) + (ampT3_R & (env_valT3))) >> 2);
 }
