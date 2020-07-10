@@ -16,55 +16,9 @@
 //BEGIN declarations
 //--------------------------------------------------------------------------------------------------------
 const float sFreq = 31372.54903; //sampling frequency in hz - as determined by (clockFreq/510) (PC PWM)
-//so every 510 clock cycles, the phase accumulator is incremented (by the corresponding tuning word)
+                                 //so every 510 clock cycles, the phase accumulator is incremented (by the corresponding tuning word
 
-//SINE wave - 8bit - 256 unsigned bytes [0-255] - not needed (alg)
-//--------------------------------------------------------------------------------------------------------
-/*const byte sinPts[] = {
-  127, 130, 133, 136, 139, 142, 145, 148, 151, 154, 157, 160, 163, 166, 169, 172,
-  175, 178, 181, 184, 186, 189, 192, 194, 197, 200, 202, 205, 207, 209, 212, 214,
-  216, 218, 221, 223, 225, 227, 229, 230, 232, 234, 235, 237, 239, 240, 241, 243,
-  244, 245, 246, 247, 248, 249, 250, 250, 251, 252, 252, 253, 253, 253, 253, 253,
-  254, 253, 253, 253, 253, 253, 252, 252, 251, 250, 250, 249, 248, 247, 246, 245,
-  244, 243, 241, 240, 239, 237, 235, 234, 232, 230, 229, 227, 225, 223, 221, 218,
-  216, 214, 212, 209, 207, 205, 202, 200, 197, 194, 192, 189, 186, 184, 181, 178,
-  175, 172, 169, 166, 163, 160, 157, 154, 151, 148, 145, 142, 139, 136, 133, 130,
-
-  127, 123, 120, 117, 114, 111, 108, 105, 102, 99, 96, 93, 90, 87, 84, 81,
-  78, 75, 72, 69, 67, 64, 61, 59, 56, 53, 51, 48, 46, 44, 41, 39,
-  37, 35, 32, 30, 28, 26, 24, 23, 21, 19, 18, 16, 14, 13, 12, 10,
-  9, 8, 7, 6, 5, 4, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8,
-  9, 10, 12, 13, 14, 16, 18, 19, 21, 23, 24, 26, 28, 30, 32, 35,
-  37, 39, 41, 44, 46, 48, 51, 53, 56, 59, 61, 64, 67, 69, 72, 75,
-  78, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108, 111, 114, 117, 120, 123
-  };*/
-
-//SQUARE wave - 8bit - 256 unsigned bytes [0-255] - not needed (alg)
-//--------------------------------------------------------------------------------------------------------
-/*const byte sqrPts[] = {
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  };*/
-
-
-//tuning words: -/+ 4 octaves around middle a (440hz)
-//calculated as oscFreq/sFreq
+//tuning words: -/+ 4 octaves around middle a (440hz) (calculated as oscFreq/sFreq)
 //--------------------------------------------------------------------------------------------------------
 volatile unsigned int tuningWords[] { //0-95
   57, 60, 64, 68, 72, 76, 81, 86, 91, 96, 102, 108,
@@ -104,7 +58,7 @@ volatile float tps = ((bpm / 60.0) * 4 * 24); //ticks per second - to relate the
 volatile unsigned int sptCounterMax = int(sFreq / tps); //truncates fractional component - ticks per sample
 volatile unsigned int sptCounter = 0; //current sample - only counts tick on overflow - samples per trig
 
-//bpm - qnps | 0 - 1023
+//bpm == qnps | 0 to 1023
 //> recall that there are 4 16th notes per quarter note, and 3 1/8th note triplets per quarter note
 //> therefore a timing resolution of +/- 12 "ticks" per 16th note allows for native representation of both
 //> 16th notes (24 ticks) and 8th note triplets (32 ticks) on the sequencer :3 (as well as variations thereof)
@@ -117,6 +71,7 @@ volatile unsigned int sptCounter = 0; //current sample - only counts tick on ove
 //parameter delcarations
 //--------------------------------------------------------------------------------------------------------
 //track 1 (rightmost)
+//--------------------------------------------------------------------------------
 unsigned int params3_T1[] = {    //track 1 parameter page 3 (rightmost)
   48, 48, 48, 48, 48, 48
 };
@@ -127,6 +82,7 @@ unsigned int params1_T1[] = {    //track 1 parameter page 1 (leftmost)
   48, 48, 48, 48, 48, 48
 };
 //track 2 (middle)
+//--------------------------------------------------------------------------------
 unsigned int params3_T2[] = {    //track 2 parameter page 3
   48, 48, 48, 48, 48, 48
 };
@@ -137,6 +93,7 @@ unsigned int params1_T2[] = {    //track 2 parameter page 1
   48, 48, 48, 48, 48, 48
 };
 //track 3 (leftmost)
+//--------------------------------------------------------------------------------
 unsigned int params3_T3[] = {    //track 3 parameter page 3
   48, 48, 48, 48, 48, 48
 };
@@ -147,7 +104,7 @@ unsigned int params1_T3[] = {    //track 3 parameter page 1
   48, 48, 48, 48, 48, 48
 };
 
-//parameter input filters (necessary?)
+//parameter input filters (FIR)
 //--------------------------------------------------------------------------------------------------------
 unsigned int paramsBuff[] = {
   0, 0, 0, 0, 0, 0
@@ -156,22 +113,23 @@ unsigned int prevParamsBuff[] = {
   0, 0, 0, 0, 0, 0
 };
 byte pgChange = B00000000;
+
 //> top 2 MSB's of pgChange [7-6] are not used
 //> bottom 6 bits [5-0] represent change state for each param pot [1-6] (buffer indeces [0-5]) (left to right)
 //> a state of 1 for a given pot means the corresponding parameter buffer value WILL NOT be assigned to the associated param
 //> a state of 0 for a given pot means the corresponding parameter buffer value WILL be assigned to the associated param
-//--------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 //> initially, all are 0, as sp (currently) boots to track 1, page 3 - params already "caught up" w/ input buffer at start
 //> bits 0-5 are set (pgChange == Bxx111111) on EITHER of the following two events:
 //  1. param page change
 //  2. track select change
-//--------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 //> each bit (flag) is cleared individually for the associated param if EITHER of the following conditions are met:
 //  1. if the sign bit (bit 15, MSB) of (paramsBuff[n] - params(page)_T(track)[n]) != (prevParamsBuff[n] - params(page)_T(track)[n])
 //    > which is to say... if the parameter input for the selected track/page PASSES whatever the value was previously
 //  2. if the most recently read value (paramsBuff[n]) is EQUAL TO the value of the parameter being modified (params(page)_T(track)[n])
 //    > really just catching the outlier cases... in case the parameter control resumes from one of the L/R bounaries
-//--------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 //> when the bit is cleared, params(page)_T(track)[n] is updated from the buffer
 //> it then proceeds to be updated EVERY LOOP, until the corresponding bit flag is set again
 //> after a track or param page change, ALL bit flags are set (Bxx111111)
@@ -180,6 +138,7 @@ byte pgChange = B00000000;
 //sequencer tracker
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 byte seqTrackerT1[] = { //for led display of active step (when seq playing)
   B00000000,
   B00000000,
@@ -192,6 +151,7 @@ byte seqTrackerT1[] = { //for led display of active step (when seq playing)
 };
 byte *seqTrackerT1_P = seqTrackerT1; //pointer to start of tracker array
 //track 2
+//--------------------------------------------------------------------------------
 byte seqTrackerT2[] = { //for led display of active step (when seq playing)
   B00000000,
   B00000000,
@@ -204,6 +164,7 @@ byte seqTrackerT2[] = { //for led display of active step (when seq playing)
 };
 byte *seqTrackerT2_P = seqTrackerT2; //pointer to start of tracker array
 //track 3
+//--------------------------------------------------------------------------------
 byte seqTrackerT3[] = { //for led display of active step (when seq playing)
   B00000000,
   B00000000,
@@ -219,6 +180,7 @@ byte *seqTrackerT3_P = seqTrackerT3; //pointer to start of tracker array
 //sequencer pages
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 byte seqPagesT1[] = {
   B00000000,
   B00000000,
@@ -230,6 +192,7 @@ byte seqPagesT1[] = {
   B00000000
 };
 //track 2
+//--------------------------------------------------------------------------------
 byte seqPagesT2[] = {
   B00000000,
   B00000000,
@@ -241,6 +204,7 @@ byte seqPagesT2[] = {
   B00000000
 };
 //track 3
+//--------------------------------------------------------------------------------
 byte seqPagesT3[] = {
   B00000000,
   B00000000,
@@ -255,6 +219,7 @@ byte seqPagesT3[] = {
 //sequencer notes
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 char seqNotesT1[] = {     //holds the note stored on each step - as a signed 8 bit value [-128, 127]
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
@@ -266,6 +231,7 @@ char seqNotesT1[] = {     //holds the note stored on each step - as a signed 8 b
   0, 0, 0, 0, 0, 0, 0, 0
 };
 //track 2
+//--------------------------------------------------------------------------------
 char seqNotesT2[] = {     //this is essentially a semitone offset from A-440
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
@@ -277,6 +243,7 @@ char seqNotesT2[] = {     //this is essentially a semitone offset from A-440
   0, 0, 0, 0, 0, 0, 0, 0
 };
 //track 3
+//--------------------------------------------------------------------------------
 char seqNotesT3[] = {     //which is used to address the tuning word lookup table (to set the pitch if each oscillator)
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
@@ -291,6 +258,7 @@ char seqNotesT3[] = {     //which is used to address the tuning word lookup tabl
 //sequencer offsets
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 byte seqOffsT1[] = {  //tick offset for each step - default is center (tracks 1-3)
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -298,6 +266,7 @@ byte seqOffsT1[] = {  //tick offset for each step - default is center (tracks 1-
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 //track 2
+//--------------------------------------------------------------------------------
 byte seqOffsT2[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -305,6 +274,7 @@ byte seqOffsT2[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 //track 3
+//--------------------------------------------------------------------------------
 byte seqOffsT3[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -325,6 +295,7 @@ volatile bool seqPlay = 0; //sequencer state: 1 for playing | 0 for stopped (def
 byte page = 1; //currently selected seq page
 
 //track 1
+//--------------------------------------------------------------------------------
 byte seqStepT1 = 0; //currently active step of the sequencer (0-63) - 0 when not playing
 volatile unsigned int seqTicksT1 = 0; //present tick position of sequencer
 volatile unsigned int maxTicksT1 = 384; //determines sequence length before reset (max steps == maxTicks/24)
@@ -332,6 +303,7 @@ volatile byte stepIndexT1 = 0; //0-23 - current inter-step index (0 when stopped
 volatile byte seqLimT1 = 1; //last group before reset - starting from 0
 volatile byte seqLengthT1 = 16; //length of sequence in steps
 //track 2
+//--------------------------------------------------------------------------------
 byte seqStepT2 = 0;
 volatile unsigned int seqTicksT2 = 0;
 volatile unsigned int maxTicksT2 = 384;
@@ -339,6 +311,7 @@ volatile byte stepIndexT2 = 0;
 volatile byte seqLimT2 = 1;
 volatile byte seqLengthT2 = 16;
 //track 3
+//--------------------------------------------------------------------------------
 byte seqStepT3 = 0;
 volatile unsigned int seqTicksT3 = 0;
 volatile unsigned int maxTicksT3 = 384;
@@ -375,6 +348,7 @@ byte matrixStateB[] = { //buffer for matrix state - for input filtering (edge de
 //stereo phase accumulators
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 volatile unsigned int phaseAccT1_L; //stereo phase accumulators for each track
 volatile unsigned int phaseAccT1_R;
 volatile unsigned int tWordT1_L = tuningWords[48 + noteValT1]; //independent tuning words for each accumulator
@@ -386,6 +360,7 @@ byte ampT1_R = 255; //instantaneous R osc amplitude - init to ON
 byte pulseWidthT1_L = 128; //pulse width of L waveform - state change in algorithms (init to half width)
 byte pulseWidthT1_R = 128; //pulse width of R waveform - state change in algorithms (init to half width)
 //track 2
+//--------------------------------------------------------------------------------
 volatile unsigned int phaseAccT2_L; //unsigned int is a 16 bit type
 volatile unsigned int phaseAccT2_R; //so the accumulator resolution is 2 bytes
 volatile unsigned int tWordT2_L = tuningWords[48 + noteValT2]; //the tuning word is essentially a fraction of the full
@@ -397,6 +372,7 @@ byte ampT2_R = 255; //instantaneous R osc amplitude - init to ON
 byte pulseWidthT2_L = 128; //pulse width of L waveform - state change in algorithms (init to half width)
 byte pulseWidthT2_R = 128; //pulse width of R waveform - state change in algorithms (init to half width)
 //track 3
+//--------------------------------------------------------------------------------
 volatile unsigned int phaseAccT3_L; //only the top byte of each is used to address
 volatile unsigned int phaseAccT3_R; //the sampled waveform - 8 bit sampling res.
 volatile unsigned int tWordT3_L = tuningWords[48 + noteValT3]; //the fraction is proportional to the track frequency
@@ -411,16 +387,19 @@ byte pulseWidthT3_R = 128; //pulse width of R waveform - state change in algorit
 //envelope variables
 //--------------------------------------------------------------------------------------------------------
 //track 1
+//--------------------------------------------------------------------------------
 volatile byte env_valT1 = 0;  //byte which represents the instantaneous state of the envelope for T1 - bitwise &ed w/ volT1 in ISR
 volatile bool env_trigT1 = 0; //1 when envelope starts and while running; set to 0 at end of env (env_ValT1 == 0)
 volatile unsigned int env_cntT1 = 0;
 volatile unsigned int env_speedT1 = 255; //init to 3/4 max speed
 //track 2
+//--------------------------------------------------------------------------------
 volatile byte env_valT2 = 0;  //byte which represents the instantaneous state of the envelope for T2 - bitwise &ed w/ volT2 in ISR
 volatile bool env_trigT2 = 0;
 volatile unsigned int env_cntT2 = 0;
 volatile unsigned int env_speedT2 = 255; //init to 3/4 max speed
 //track 3
+//--------------------------------------------------------------------------------
 volatile byte env_valT3 = 0;  //byte which represents the instantaneous state of the envelope for T3 - bitwise &ed w/ volT3 in ISR
 volatile bool env_trigT3 = 0;
 volatile unsigned int env_cntT3 = 0;
@@ -446,15 +425,15 @@ volatile int outputFilter_R[] {
 
 //LED state variables
 //--------------------------------------------------------------------------------------------------------
-//shifted out LSB first; ends on MSB
-//note: when shifting, since all SR's share the same output/clock/latch pins, the byte to read the switch matrix is sent FIRST
 byte ledState[] = {  //instantaneous state of all LEDs
   B10000011, //pag 1-4 | trk 1-3 | bpm 1) (SR 3) (bit 0 is LSB - bpm)
   B11111111, //seq leds 9-16 (SR 2)
   B11111111  //seq leds 1-8 (SR 1) (bit 7 is MSB - seq 1)
 };
+//shifted out LSB first; ends on MSB
+//note: when shifting, since all SR's share the same output/clock/latch pins, the byte to read the switch matrix is sent FIRST
 
-//Misc. variables
+//misc. variables
 //--------------------------------------------------------------------------------------------------------
 byte fn = 0;  //instantaneous state of function key (for accessing alternate functions)
 char octaveOffset = 0;  //offset in +/- |
@@ -474,21 +453,21 @@ bool ledOn = 1;
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
 void setup() {
-  clearRegBit (TIMSK0, TOIE0);//disables timer 0 overflow interrupt
-  clearRegBit (TIMSK1, TOIE1);//disables timer 0 overflow interrupt
-  setRegBit (TIMSK2, TOIE2);//enables timer 2 overflow interrupt
+  clearRegBit (TIMSK0, TOIE0);  //disables timer 0 overflow interrupt
+  clearRegBit (TIMSK1, TOIE1);  //disables timer 0 overflow interrupt
+  setRegBit (TIMSK2, TOIE2);    //enables timer 2 overflow interrupt
 
-  setRegBit (TCCR2B, CS20); //prescaler to 1
-  clearRegBit (TCCR2B, CS21); //this means that in phase correct mode, the timer will reset every 510 clock cycles
-  clearRegBit (TCCR2B, CS22); //16.000.000/510 = 31372.54902hz - this is how the sampling frequency is derived
-  //since the interrupt is executed at the end of every full timer cycle
+  setRegBit (TCCR2B, CS20);     //prescaler to 1
+  clearRegBit (TCCR2B, CS21);   //this means that in phase correct mode, the timer will reset every 510 clock cycles
+  clearRegBit (TCCR2B, CS22);   //16.000.000/510 = 31372.54902hz - this is how the sampling frequency is derived
+                                //since the interrupt is executed at the end of every full timer cycle
 
   clearRegBit (TCCR2A, COM2A0); //configures both OC2A & OC2B to clear compare match
-  setRegBit (TCCR2A, COM2A1); //when TCNT2 reaches OCR2A/B when counting up, output A/B is cleared
+  setRegBit (TCCR2A, COM2A1);   //when TCNT2 reaches OCR2A/B when counting up, output A/B is cleared
   clearRegBit (TCCR2A, COM2B0); //when TCNT2 reaches OCR2A/B when counting down, output A/B is set
   setRegBit (TCCR2A, COM2B1);
 
-  setRegBit (TCCR2A, WGM20); //configures phase correct pwm for both OCR2A & OCR2B
+  setRegBit (TCCR2A, WGM20);    //configures phase correct pwm for both OCR2A & OCR2B
   clearRegBit (TCCR2A, WGM21);
   clearRegBit (TCCR2B, WGM22);
 
@@ -502,17 +481,14 @@ void setup() {
   pinMode(matrixRow4, INPUT_PULLUP); //changes state of matrix cell to reflect detected input
   pinMode(matrixRow5, INPUT_PULLUP);
 
-  pinMode(outputLeft, OUTPUT); //OCR2A & OCR2B outputs
+  pinMode(outputLeft, OUTPUT);  //OCR2A & OCR2B outputs
   pinMode(outputRight, OUTPUT); //serve as L and R mix outputs
 
   for (int p = 0; p <= 5; p++) {
     pinMode(paramPins[p], INPUT);
   }
-
-  pinMode(5, OUTPUT); //led for timing debug
-  //digitalWrite(5, LOW);
-  //Serial.begin(38400);
-  Serial.end();
+  
+  Serial.end(); //force end all serial com - for speed
 }
 //END setup()
 //--------------------------------------------------------------------------------------------------------
@@ -523,14 +499,12 @@ void setup() {
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
 void loop() {
-  for (int pLoop = 0; pLoop <= 5; pLoop++) {//reads analog voltages of each pot (1-6) and assigns them to param. buffer
+  for (int pLoop = 0; pLoop <= 5; pLoop++) {      //reads analog voltages of each pot (1-6) and assigns them to param. buffer
     int paramRead = analogRead(paramPins[pLoop]); //the analog voltage read directly from the input
-    prevParamsBuff[pLoop] = paramsBuff[pLoop]; //saves previous value for sign change detection
+    prevParamsBuff[pLoop] = paramsBuff[pLoop];    //saves previous value for sign change detection
     paramsBuff[pLoop] = (1024 - paramRead);
     int paramsAvg = paramsBuff[pLoop];
-    /*Serial.print(pLoop);
-      Serial.print(": ");
-      Serial.println(paramsAvg);*/
+    
     if (paramsPage == 3) { //rightmost
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
@@ -629,24 +603,24 @@ void loop() {
       }
     }
   }
+  
   //sr out - digital output 6 - port D, bit 6
   //sr clk - digital output 9 - port B, bit 1
   //sr ltc - digital output 10 - port B, bit 2 :3
+  //2, 4, 7, 8, 12 - matrix rows 1-5 pin mapping
+  //2 -  PD2 | 4 - PD4 | 7 - PD7 | 8 - PB0 | 12 - PB4
 
-  bpm = params3_T1[5] + 10; //gets new bpm as a function of the instantaneous state of params3_T1[5] (rightmost, track 1, page 3)
-  tps = ((bpm / 60.0) * 4 * 24);  //calculates the number of sequencer "ticks" in one second, as a function of bpm
+  bpm = params3_T1[5] + 10;         //gets new bpm as a function of the instantaneous state of params3_T1[5] (rightmost, track 1, page 3)
+  tps = ((bpm / 60.0) * 4 * 24);    //calculates the number of sequencer "ticks" in one second, as a function of bpm
   sptCounterMax = int(sFreq / tps); //calculates the maximum counter value to relate the sequencer tick frequency to the sampling (interrupt) frequency
 
   for (int colCount = 0; colCount <= 7; colCount++) {
-    bitWrite(srByte, (7 - colCount), 0); //clear bit to check correct column
-    shiftByte(srByte, shiftSerOut, shiftClock, shiftLatch);    //reg for matrix column config
+    bitWrite(srByte, (7 - colCount), 0);                         //clear bit to check correct column
+    shiftByte(srByte, shiftSerOut, shiftClock, shiftLatch);      //reg for matrix column config
     shiftByte(ledState[0], shiftSerOut, shiftClock, shiftLatch); //leds 17-24 (pag | trk | bpm)
     shiftByte(ledState[1], shiftSerOut, shiftClock, shiftLatch); //leds 9-16 (seq 16-9)
     shiftByte(ledState[2], shiftSerOut, shiftClock, shiftLatch); //leds 1-8 (seq 1-8)
-    //digitalWrite(5, LOW);
     bitSet(PORTB, 1); //digitalWrite(shiftLatch, HIGH);
-    //2, 4, 7, 8, 12 - matrix rows 1-5 pin mapping
-    //2 -  PD2 | 4 - PD4 | 7 - PD7 | 8 - PB0 | 12 - PB4
     if (!digitalRead(matrixRow1)) { //if logic 1 on input
       if (!bitRead(matrixStateB[0], (7 - colCount))) { //if matrix buffer state was most recently not pressed
         bitSet(matrixState[0], (7 - colCount));        //inverts the state to pressed only on first press
@@ -711,8 +685,8 @@ void loop() {
     bitWrite(srByte, (7 - colCount), 1); //set bit in prep for next column read
   }
   keyVal = 0;
-  if (trackSelect == 1) { //sets instantaneous state of sequencer tracker bytes
-    //as a function of both current tracker state & the state of the selected sequencer track page
+  if (trackSelect == 1) { //sets instantaneous state of sequencer LED bytes
+                          //as a function of both current tracker state & the state of the selected sequencer track page
     ledState[2] = (seqPagesT1[seqPageA_T1] | seqTrackerT1[seqPageA_T1]);
     ledState[1] = (seqPagesT1[seqPageB_T1] | seqTrackerT1[seqPageB_T1]);
   } else if (trackSelect == 2) {
@@ -730,17 +704,13 @@ void loop() {
 
 //BEGIN shiftByte()
 //--------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------
-void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
   //shifts one byte out on the given serial output pin, LSB first
   //ex. shiftOut(B10001000, 6, 10, 9) would shift out the given byte on pin 6
   //using clock pin 10 and latch pin 9 as a part of the shift operation
-
-  //digitalWrite(srClk, LOW); //take clock pin low to ensure good starting state
-  clearRegBit(PORTB, 1);
-  //digitalWrite(srLatch, LOW); //take latch pin low to prepare for shift
-  clearRegBit(PORTB, 2);
-
+//--------------------------------------------------------------------------------------------------------
+void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
+  clearRegBit(PORTB, 1);  //take clock pin low to ensure good starting state
+  clearRegBit(PORTB, 2);  //take latch pin low to prepare for shift
 
   for (int shiftCnt = 0; shiftCnt <= 7; shiftCnt++) {
     if (bitRead(n, shiftCnt)) { //if 1
@@ -751,7 +721,6 @@ void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
     digitalWrite(srClk, HIGH); //pulse clock pin to shift in bit
     digitalWrite(srClk, LOW);  //can't be port manip - too fast for for shift registers
   }
-  //no need to set latch pin high - do that in main loop after desired number of byte shifts
 }
 //END shiftByte()
 //--------------------------------------------------------------------------------------------------------
@@ -798,9 +767,9 @@ void updateUI(byte keyVal) {
       break;
     case 17: //seq stop
       seqPlay = 0; //stop sequencer
-      seqTrackerT1[seqStepT1 >> 3] = 0; //clear current tracker state
-      seqTrackerT2[seqStepT2 >> 3] = 0; //clear current tracker state
-      seqTrackerT3[seqStepT3 >> 3] = 0; //clear current tracker state
+      seqTrackerT1[seqStepT1 >> 3] = 0; //clear current T1 tracker state
+      seqTrackerT2[seqStepT2 >> 3] = 0; //clear current T2 tracker state
+      seqTrackerT3[seqStepT3 >> 3] = 0; //clear current T3 tracker state
       if (trackSelect == 1) {
         ledState[2] = (seqPagesT1[seqPageA_T1] | seqTrackerT1[seqPageA_T1]);
         ledState[1] = (seqPagesT1[seqPageB_T1] | seqTrackerT1[seqPageB_T1]);
@@ -811,32 +780,31 @@ void updateUI(byte keyVal) {
         ledState[2] = (seqPagesT3[seqPageA_T3] | seqTrackerT3[seqPageA_T3]);
         ledState[1] = (seqPagesT3[seqPageB_T3] | seqTrackerT3[seqPageB_T3]);
       }
-      seqStepT1 = 0;  //reset step counter - restarts sequencer by step
-      seqStepT2 = 0;  //reset step counter - restarts sequencer by step
-      seqStepT3 = 0;  //reset step counter - restarts sequencer by step
+      seqStepT1 = 0;  //reset step T1 counter - restarts sequencer by step
+      seqStepT2 = 0;  //reset step T2 counter - restarts sequencer by step
+      seqStepT3 = 0;  //reset step T3 counter - restarts sequencer by step
       break;
     case 18: //seq play
       seqStepT1 = 0;
       seqTicksT1 = 0;
       stepIndexT1 = 0;
-      seqTrackerT1[0] = B10000000; //clear current tracker state
+      seqTrackerT1[0] = B10000000; //reset current T1 tracker state
 
       seqStepT2 = 0;
       seqTicksT2 = 0;
       stepIndexT2 = 0;
-      seqTrackerT2[0] = B10000000; //clear current tracker state
+      seqTrackerT2[0] = B10000000; //reset current T2 tracker state
 
       seqStepT3 = 0;
       seqTicksT3 = 0;
       stepIndexT3 = 0;
-      seqTrackerT3[0] = B10000000; //clear current tracker state
+      seqTrackerT3[0] = B10000000; //reset current T3 tracker state
 
       sptCounter = 0;
       seqPlay = 1; //start sequencer
       break;
-    case 19:  //shift seq 1 page (16 steps) to the right (fn == 0)
-      //shift keyboard 1 octave (12 st) to the right (fn == 1)
-      if (!fn) { //if fn not pressed - shift sequencer page (1) page to the right (or wraps around to the left as needed)
+    case 19:  
+      if (!fn) { //shift seq 1 page (16 steps) to the right (fn == 0)
         if (page == 1) { //page 0 to 1
           page = 2;
           bitClear(ledState[0], 7);
@@ -878,15 +846,14 @@ void updateUI(byte keyVal) {
           seqPageA_T3 = 0;
           seqPageB_T3 = 1;
         }
-      } else {  //fn pressed (fn == 1) - octave shift +1 right
+      } else {  //shift keyboard 1 octave (12 st) to the right (fn == 1)
         if (octaveOffset < 2) {
           octaveOffset++;
         }
       }
       break;
-    case 20:  //shift seq 1 page (16 steps) to the left (fn == 0)
-      //shift keyboard 1 octave (12 st) to the left (fn == 1)
-      if (fn == 0) {
+    case 20:  
+      if (fn == 0) {  //shift seq 1 page (16 steps) to the left (fn == 0)
         if (page == 1) {        //page 1 to 4
           page = 4;
           bitClear(ledState[0], 7);
@@ -928,7 +895,7 @@ void updateUI(byte keyVal) {
           seqPageA_T3 = 4;
           seqPageB_T3 = 5;
         }
-      } else {  //fn pressed (fn == 1) - octave shift -1 left
+      } else {  //shift keyboard 1 octave (12 st) to the left (fn == 1)
         if (octaveOffset > -3) {
           octaveOffset--;
         }
