@@ -244,7 +244,7 @@ char seqNotesT2[] = {     //this is essentially a semitone offset from A-440
 };
 //track 3
 //--------------------------------------------------------------------------------
-char seqNotesT3[] = {     //which is used to address the tuning word lookup table (to set the pitch if each oscillator)
+char seqNotesT3[] = {     //which is used to address the tuning word lookup table (to set the pitch of each oscillator)
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
@@ -499,13 +499,25 @@ void setup() {
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
 void loop() {
-  for (int pLoop = 0; pLoop <= 5; pLoop++) {      //reads analog voltages of each pot (1-6) and assigns them to param. buffer
+  for (int pLoop = 0; pLoop <= 5; pLoop++) {
+    //read instantaneous level of active parameter pot (as determined by pLoop)
+    //assign pot value read by ADC to corresponding location (0-5) in the parameter buffer
+    //--------------------------------------------------------------------------------
     int paramRead = analogRead(paramPins[pLoop]); //the analog voltage read directly from the input
     prevParamsBuff[pLoop] = paramsBuff[pLoop];    //saves previous value for sign change detection
-    paramsBuff[pLoop] = (1024 - paramRead);
-    int paramsAvg = paramsBuff[pLoop];
-    
-    if (paramsPage == 3) { //rightmost
+    paramsBuff[pLoop] = (1024 - paramRead);       //compensates for inverted pot read (1023 is fully counterclockwise, and 0 is fully clockwise)
+    //int paramsAvg = (paramsBuff[pLoop] + prevParamsBuff[pLoop]) >> 1; //filter parameter input
+    int paramsAvg = paramsBuff[pLoop]; //filter parameter input
+
+    //if active pgChange bit == 1 (no assign):
+    //  compare active param value (as determined by pLoop) of currently selected track and page to those stored in parameter buffer
+    //  clear pgChange flag of corresponding pot (0-5) when the parameter value either PASSES (sign change of difference) or EQUALS the buffer value
+    //if active pgChange bit == 0 (assign):
+    //  update active param value (as determined by pLoop) of the currently selected track and page (assign paramsAvg to location)
+    //--------------------------------------------------------------------------------
+    //page 3 - rightmost
+    //------------------------------------------------------------
+    if (paramsPage == 3) {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
           if ((bitRead(int(prevParamsBuff[pLoop] - params3_T1[pLoop]), 15) != bitRead(int(paramsBuff[pLoop] - params3_T1[pLoop]), 15)) || (paramsAvg == params3_T1[pLoop])) { //only updates when caught up w/ pot - on sign change
@@ -537,6 +549,8 @@ void loop() {
           }
         }
       }
+    //page 2 - middle
+    //------------------------------------------------------------
     } else if (paramsPage == 2) {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
@@ -569,7 +583,9 @@ void loop() {
           }
         }
       }
-    } else {  //leftmost
+    //page 1 - leftmost
+    //------------------------------------------------------------
+    } else {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
           if ((bitRead(int(prevParamsBuff[pLoop] - params1_T1[pLoop]), 15) != bitRead(int(paramsBuff[pLoop] - params1_T1[pLoop]), 15)) || (paramsAvg == params1_T1[pLoop])) { //only updates when caught up w/ pot - on sign change
@@ -603,25 +619,42 @@ void loop() {
       }
     }
   }
-  
+
+  //port mapping for I/O:
+  //------------------------------------------------------------
   //sr out - digital output 6 - port D, bit 6
   //sr clk - digital output 9 - port B, bit 1
   //sr ltc - digital output 10 - port B, bit 2 :3
   //2, 4, 7, 8, 12 - matrix rows 1-5 pin mapping
   //2 -  PD2 | 4 - PD4 | 7 - PD7 | 8 - PB0 | 12 - PB4
 
+  //update BPM
+  //--------------------------------------------------------------------------------
   bpm = params3_T1[5] + 10;         //gets new bpm as a function of the instantaneous state of params3_T1[5] (rightmost, track 1, page 3)
   tps = ((bpm / 60.0) * 4 * 24);    //calculates the number of sequencer "ticks" in one second, as a function of bpm
   sptCounterMax = int(sFreq / tps); //calculates the maximum counter value to relate the sequencer tick frequency to the sampling (interrupt) frequency
 
+  //get input from all switches & call input handling function updateUI as needed (for each detected press)
+  //--------------------------------------------------------------------------------
   for (int colCount = 0; colCount <= 7; colCount++) {
+    
+    //srByte
+    //  bits 7-0 are cleared in turn (as determined by colCount), to select the active switch matrix column to be read
+    //  shiftByte then shifts the column byte in once per colCount loop (8 times in total), to read every switch in the matrix
+    //ledState[1-3]
+    //  set elsewhere (LED states are changed in several locations throughout the program, for varying reasons)
+    //  instantaneous LED states are shifted back in after each srByte shift, to ensure LEDs are always current between matrix reads
+    //------------------------------------------------------------
     bitWrite(srByte, (7 - colCount), 0);                         //clear bit to check correct column
     shiftByte(srByte, shiftSerOut, shiftClock, shiftLatch);      //reg for matrix column config
     shiftByte(ledState[0], shiftSerOut, shiftClock, shiftLatch); //leds 17-24 (pag | trk | bpm)
     shiftByte(ledState[1], shiftSerOut, shiftClock, shiftLatch); //leds 9-16 (seq 16-9)
     shiftByte(ledState[2], shiftSerOut, shiftClock, shiftLatch); //leds 1-8 (seq 1-8)
-    bitSet(PORTB, 1); //digitalWrite(shiftLatch, HIGH);
-    if (!digitalRead(matrixRow1)) { //if logic 1 on input
+    bitSet(PORTB, 1);                                            //latch shift registers after all bytes shifted in
+
+    //
+    //------------------------------------------------------------
+    if (!digitalRead(matrixRow1)) {                    //if logic 1 on input
       if (!bitRead(matrixStateB[0], (7 - colCount))) { //if matrix buffer state was most recently not pressed
         bitSet(matrixState[0], (7 - colCount));        //inverts the state to pressed only on first press
         bitSet(matrixStateB[0], (7 - colCount));       //buffer then set to avoid repeat presses
@@ -1510,8 +1543,8 @@ ISR(TIMER2_OVF_vect) {
   
   //track 1 PWM oscillator
   //--------------------------------------------------------------------------------
-  pulseWidthT1_L = *(params3_T1) >> 2;
-  pulseWidthT1_R = *(params3_T1 + 1) >> 2;
+  pulseWidthT1_L = (*(params3_T1) >> 2) + (*(params3_T1 + 1) >> 4);
+  pulseWidthT1_R = (*(params3_T1) >> 2) - (*(params3_T1 + 1) >> 4);
   phaseAccT1_L = phaseAccT1_L + tWordT1_L;  //increment phase accumulator
   phaseAccT1_R = phaseAccT1_R + tWordT1_R;
   phaseT1_L = phaseAccT1_L >> 8; //(top 8 bits)
@@ -1529,7 +1562,7 @@ ISR(TIMER2_OVF_vect) {
   //track 2 PWM oscillator
   //--------------------------------------------------------------------------------
   pulseWidthT2_L = *(params3_T2) >> 2;
-  pulseWidthT2_R = *(params3_T2 + 1) >> 2;
+  pulseWidthT2_R = *(params3_T2) >> 2;
   phaseAccT2_L = phaseAccT2_L + tWordT2_L;
   phaseAccT2_R = phaseAccT2_R + tWordT2_R;
   phaseT2_L = phaseAccT2_L >> 8;
@@ -1547,7 +1580,7 @@ ISR(TIMER2_OVF_vect) {
   //track 3 PWM oscillator
   //--------------------------------------------------------------------------------
   pulseWidthT3_L = *(params3_T3) >> 2;
-  pulseWidthT3_R = *(params3_T3 + 1) >> 2;
+  pulseWidthT3_R = *(params3_T3) >> 2;
   phaseAccT3_L = phaseAccT3_L + tWordT3_L;
   phaseAccT3_R = phaseAccT3_R + tWordT3_R;
   phaseT3_L = phaseAccT3_L >> 8;
