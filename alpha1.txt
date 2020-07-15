@@ -3,6 +3,11 @@
    by ramona a -w-
    4-19-20
    ><>|^*^|<><
+   --__--
+     ||___-π-___,..
+     ||---|||---|||
+    / π \      / π \
+   `\___/      \___/
 */
 
 //sr out - digital output 6 - port D, bit 6
@@ -16,7 +21,7 @@
 //BEGIN declarations
 //--------------------------------------------------------------------------------------------------------
 const float sFreq = 31372.54903; //sampling frequency in hz - as determined by (clockFreq/510) (PC PWM)
-                                 //so every 510 clock cycles, the phase accumulator is incremented (by the corresponding tuning word
+//so every 510 clock cycles, the phase accumulator is incremented (by the corresponding tuning word
 
 //tuning words: -/+ 4 octaves around middle a (440hz) (calculated as oscFreq/sFreq)
 //--------------------------------------------------------------------------------------------------------
@@ -460,7 +465,7 @@ void setup() {
   setRegBit (TCCR2B, CS20);     //prescaler to 1
   clearRegBit (TCCR2B, CS21);   //this means that in phase correct mode, the timer will reset every 510 clock cycles
   clearRegBit (TCCR2B, CS22);   //16.000.000/510 = 31372.54902hz - this is how the sampling frequency is derived
-                                //since the interrupt is executed at the end of every full timer cycle
+  //since the interrupt is executed at the end of every full timer cycle
 
   clearRegBit (TCCR2A, COM2A0); //configures both OC2A & OC2B to clear compare match
   setRegBit (TCCR2A, COM2A1);   //when TCNT2 reaches OCR2A/B when counting up, output A/B is cleared
@@ -487,7 +492,7 @@ void setup() {
   for (int p = 0; p <= 5; p++) {
     pinMode(paramPins[p], INPUT);
   }
-  
+
   Serial.end(); //force end all serial com - for speed
 }
 //END setup()
@@ -549,8 +554,8 @@ void loop() {
           }
         }
       }
-    //page 2 - middle
-    //------------------------------------------------------------
+      //page 2 - middle
+      //------------------------------------------------------------
     } else if (paramsPage == 2) {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
@@ -583,8 +588,8 @@ void loop() {
           }
         }
       }
-    //page 1 - leftmost
-    //------------------------------------------------------------
+      //page 1 - leftmost
+      //------------------------------------------------------------
     } else {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
@@ -637,7 +642,7 @@ void loop() {
   //get input from all switches & call input handling function updateUI as needed (for each detected press)
   //--------------------------------------------------------------------------------
   for (int colCount = 0; colCount <= 7; colCount++) {
-    
+
     //srByte
     //  bits 7-0 are cleared in turn (as determined by colCount), to select the active switch matrix column to be read
     //  shiftByte then shifts the column byte in once per colCount loop (8 times in total), to read every switch in the matrix
@@ -652,19 +657,28 @@ void loop() {
     shiftByte(ledState[2], shiftSerOut, shiftClock, shiftLatch); //leds 1-8 (seq 1-8)
     bitSet(PORTB, 1);                                            //latch shift registers after all bytes shifted in
 
-    //
+    //checks each matrix row in turn by performing 5 consecutive digital reads on matrix rows 1-5 (pins 2, 4, 7, 8 and 12)
+    //on first pass - pressed:
+    //  sets matrix & matrix buffer states simultaneously for active key value (as determined by matrix row and colum  (srByte state)) - the matrix buffer prevents duplicate presses from being detected
+    //  calls updateUI with the instantaneous key value when a press is detected (as determined by matrix row and column (srByte state)) - this is the input handling operation
+    //on second pass - releasesd:
+    //  clears matrix & matrix buffer states simultaneously for active key value (as determined by matrix row and colum  (srByte state))
     //------------------------------------------------------------
-    if (!digitalRead(matrixRow1)) {                    //if logic 1 on input
-      if (!bitRead(matrixStateB[0], (7 - colCount))) { //if matrix buffer state was most recently not pressed
-        bitSet(matrixState[0], (7 - colCount));        //inverts the state to pressed only on first press
-        bitSet(matrixStateB[0], (7 - colCount));       //buffer then set to avoid repeat presses
-        updateUI(keyVal);
+    //matrix row 1 (pin 2)
+    //----------------------------------------
+    if (!digitalRead(matrixRow1)) {                     //if matrix pin is sinked to ground (voltage 0, logic 1 - button pressed)
+      if (!bitRead(matrixStateB[0], (7 - colCount))) {    //if matrix buffer state for current row and column was previously NOT pressed (logic 0)
+        bitSet(matrixState[0], (7 - colCount));             //set the button state to pressed (logic 1)
+        bitSet(matrixStateB[0], (7 - colCount));            //set the buffer state to pressed (logic 1) - to avoid repeat presses
+        updateUI(keyVal);                                   //call updateUI to handle button press
       }
-    } else {
-      bitClear(matrixState[0], (7 - colCount));
-      bitClear(matrixStateB[0], (7 - colCount));
+    } else {                                            //if matrix pin is not sinked to ground (voltage 1, logic 0 - button released)
+      bitClear(matrixState[0], (7 - colCount));           //clear the button state to NOT pressed (logic 0)
+      bitClear(matrixStateB[0], (7 - colCount));          //clear the buffer state to NOT pressed (logic 0) - to prepare for next press
     }
-    keyVal++;
+    keyVal++;                                             //keyVal++ after each read, to keep track of current switch being read
+    //matrix row 2 (pin 4)
+    //----------------------------------------
     if (!digitalRead(matrixRow2)) {
       if (!bitRead(matrixStateB[1], (7 - colCount))) {
         bitSet(matrixState[1], (7 - colCount));
@@ -682,6 +696,8 @@ void loop() {
       bitClear(matrixStateB[1], (7 - colCount));
     }
     keyVal++;
+    //matrix row 3 (pin 7)
+    //----------------------------------------
     if (!digitalRead(matrixRow3)) {
       if (!bitRead(matrixStateB[2], (7 - colCount))) {
         bitSet(matrixState[2], (7 - colCount));
@@ -693,6 +709,8 @@ void loop() {
       bitClear(matrixStateB[2], (7 - colCount));
     }
     keyVal++;
+    //matrix row 4 (pin 8)
+    //----------------------------------------
     if (!digitalRead(matrixRow4)) {
       if (!bitRead(matrixStateB[3], (7 - colCount))) {
         bitSet(matrixState[3], (7 - colCount));
@@ -704,6 +722,8 @@ void loop() {
       bitClear(matrixStateB[3], (7 - colCount));
     }
     keyVal++;
+    //matrix row 5 (pin 12)
+    //----------------------------------------
     if (!digitalRead(matrixRow5)) {
       if (!bitRead(matrixStateB[4], (7 - colCount))) {
         bitSet(matrixState[4], (7 - colCount));
@@ -715,11 +735,21 @@ void loop() {
       bitClear(matrixStateB[4], (7 - colCount));
     }
     keyVal++;
+
+    //advance to next matrix column
+    //------------------------------------------------------------
     bitWrite(srByte, (7 - colCount), 1); //set bit in prep for next column read
   }
+
+  //return to start of button matrix read cycle (key 0, sequencer button 1)
+  //--------------------------------------------------------------
   keyVal = 0;
-  if (trackSelect == 1) { //sets instantaneous state of sequencer LED bytes
-                          //as a function of both current tracker state & the state of the selected sequencer track page
+
+  //update sequencer tracker:
+  //  sets instantaneous state of sequencer LED bytes
+  //  as a function of both the current tracker state (for the active track) & the state of the selected sequencer track page (1-4)
+  //--------------------------------------------------------------
+  if (trackSelect == 1) {
     ledState[2] = (seqPagesT1[seqPageA_T1] | seqTrackerT1[seqPageA_T1]);
     ledState[1] = (seqPagesT1[seqPageB_T1] | seqTrackerT1[seqPageB_T1]);
   } else if (trackSelect == 2) {
@@ -737,9 +767,9 @@ void loop() {
 
 //BEGIN shiftByte()
 //--------------------------------------------------------------------------------------------------------
-  //shifts one byte out on the given serial output pin, LSB first
-  //ex. shiftOut(B10001000, 6, 10, 9) would shift out the given byte on pin 6
-  //using clock pin 10 and latch pin 9 as a part of the shift operation
+//shifts one byte out on the given serial output pin, LSB first
+//ex. shiftOut(B10001000, 6, 10, 9) would shift out the given byte on pin 6
+//using clock pin 10 and latch pin 9 as a part of the shift operation
 //--------------------------------------------------------------------------------------------------------
 void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
   clearRegBit(PORTB, 1);  //take clock pin low to ensure good starting state
@@ -836,7 +866,7 @@ void updateUI(byte keyVal) {
       sptCounter = 0;
       seqPlay = 1; //start sequencer
       break;
-    case 19:  
+    case 19:
       if (!fn) { //shift seq 1 page (16 steps) to the right (fn == 0)
         if (page == 1) { //page 0 to 1
           page = 2;
@@ -885,7 +915,7 @@ void updateUI(byte keyVal) {
         }
       }
       break;
-    case 20:  
+    case 20:
       if (fn == 0) {  //shift seq 1 page (16 steps) to the left (fn == 0)
         if (page == 1) {        //page 1 to 4
           page = 4;
@@ -1063,7 +1093,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 2: //track 2
                 seqLengthT2 = 16; //change sequencer length
                 maxTicksT2 = 384;
@@ -1074,7 +1104,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 3: //track 3
                 seqLengthT3 = 16; //change sequencer length
                 maxTicksT3 = 384;
@@ -1085,7 +1115,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 26) && (fn == 1)) { //g - seq set to 32 step length
@@ -1101,7 +1131,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 2: //track 1
                 seqLengthT2 = 32; //change sequencer length
                 maxTicksT2 = 768;
@@ -1112,7 +1142,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 3: //track 1
                 seqLengthT3 = 32; //change sequencer length
                 maxTicksT3 = 768;
@@ -1123,7 +1153,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 25) && (fn == 1)) { //g# - seq set to 48 step length
@@ -1139,7 +1169,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 2: //track 1
                 seqLengthT2 = 48; //change sequencer length
                 maxTicksT2 = 1152;
@@ -1150,7 +1180,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
               case 3: //track 1
                 seqLengthT3 = 48; //change sequencer length
                 maxTicksT3 = 1152;
@@ -1161,7 +1191,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 24) && (fn == 1)) { //a - seq set to 64 step length
@@ -1199,7 +1229,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-              break;
+                break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 29) && (fn == 1)) { //f - seq length decremented by 1 step (24 ticks); min. length 1 (24 ticks)
@@ -1218,7 +1248,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
               case 2: //track 1
                 if (maxTicksT2 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1233,7 +1263,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
               case 3: //track 1
                 if (maxTicksT3 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1248,7 +1278,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
             }
           } else if ((keyVal == 28) && (fn == 1)) { //e - seq length incremented by 1 step (24 ticks); max. length 64 (1536 ticks)
             switch (trackSelect) {
@@ -1266,7 +1296,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
               case 2: //track 1
                 if (maxTicksT2 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1281,7 +1311,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
               case 3: //track 1
                 if (maxTicksT3 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1296,7 +1326,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-              break;
+                break;
             }
           }
         } else { //can only be top keyboard row
@@ -1322,7 +1352,7 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-          break;
+            break;
           case 2:
             if  (!fn) {
               env_valT2 = 0; //reset envelope
@@ -1342,7 +1372,7 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-          break;
+            break;
           case 3:
             if (!fn) {
               env_valT3 = 0; //reset envelope
@@ -1362,10 +1392,10 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-          break;
+            break;
         }
       }
-    break; 
+      break;
   }
 }
 //END updateUI()
@@ -1374,13 +1404,13 @@ void updateUI(byte keyVal) {
 
 //BEGIN ISR()
 //--------------------------------------------------------------------------------------------------------
-  //interrupt service routine - executes sFreq times per second
-  //all DSP happens here - oscillators, envelopes, mixer & output
-  //sequencers also happen here
+//interrupt service routine - executes sFreq times per second
+//all DSP happens here - oscillators, envelopes, mixer & output
+//sequencers also happen here
 //--------------------------------------------------------------------------------------------------------
 ISR(TIMER2_OVF_vect) {
   if (sptCounter < sptCounterMax) { //counts to sptCounterMax, then advances sequencer by 1 tick & resets sptCounter
-    sptCounter++;                   
+    sptCounter++;
   } else {                          //sptCounter overflow - trigger sequencer tick advance & reset sptCounter
     if (((seqTicksT1 % 96) == 0) && (!bitRead(ledState[0], 0))) {     //if start of quarter note - divisible by 96 ticks
       bitSet(ledState[0], 0);                                         //turn on BPM LED
@@ -1388,7 +1418,7 @@ ISR(TIMER2_OVF_vect) {
       bitClear(ledState[0], 0);                                       //turn off - doesn't turn on again til next quarter note
     }
     sptCounter = 0; //reset sptCounter (to prepare for next tick)
-    
+
     //track 1 sequencer
     //--------------------------------------------------------------------------------
     if ((stepIndexT1 < seqOffsT1[seqStepT1]) && seqPlay) { //if the current stepIndex is less than the tick offset for the current step & the seq is playing
@@ -1540,7 +1570,7 @@ ISR(TIMER2_OVF_vect) {
       }
     }
   }
-  
+
   //track 1 PWM oscillator
   //--------------------------------------------------------------------------------
   pulseWidthT1_L = (*(params3_T1) >> 2) + (*(params3_T1 + 1) >> 4);
