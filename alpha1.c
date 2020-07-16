@@ -3,9 +3,10 @@
    by ramona a -w-
    4-19-20
    ><>|^*^|<><
+   __	__
    --___--
      |||___-π-___...
-     |||---|||---|||
+     |||---|-|---|||
     / π \       / π \
     \___/       \___/
 */
@@ -811,7 +812,15 @@ void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
 //--------------------------------------------------------------------------------------------------------
 void updateUI(byte keyVal) {
   switch (keyVal) {
-    case 16: //FN key changed state
+	//case 16 - FN - called on every state change (rising AND falling edge)
+	//	if fn was previously not pressed, a press is registered
+	//		fn is set to 1
+	//		led states for active track display are set, to reflect active track on page LEDs (as determined by trackSelect)
+	//	if fn was previously pressed, a release is registered
+	//		fn is set to 0
+	//		led states for active track display are returned to original states, to reflect active page (as determined by paramsPage)
+	//------------------------------------------------------------
+    case 16:
       if (!fn) { //if fn was pressed (rising edge)
         fn = 1;
         if (trackSelect == 1) {
@@ -843,7 +852,13 @@ void updateUI(byte keyVal) {
           bitSet(ledState[0], 3);
         }
       }
-      break;
+    break;
+	//case 17 - stop sequencer - called when sequencer stop button pressed
+	//	seqPlay set to 0
+	//	trackers cleared for all sequences
+	//	ledStates recalculated to account for newly cleared trackers
+	//	seqStepTn counters reset
+	//------------------------------------------------------------
     case 17: //seq stop
       seqPlay = 0; //stop sequencer
       seqTrackerT1[seqStepT1 >> 3] = 0; //clear current T1 tracker state
@@ -862,26 +877,36 @@ void updateUI(byte keyVal) {
       seqStepT1 = 0;  //reset step T1 counter - restarts sequencer by step
       seqStepT2 = 0;  //reset step T2 counter - restarts sequencer by step
       seqStepT3 = 0;  //reset step T3 counter - restarts sequencer by step
-      break;
+    break;
+	//case 17 - start sequencer - called when sequencer start button pressed
+	//	active seqStep set to init state (step 0) for all tracks
+	//	sequencer tick counters reset (set to 0) for all tracks
+	//	inter-step indeces reset for all tracks (0)
+	//	trackers reset to initial positions for all tracks - step 1
+	//	ledStates recalculated to account for newly cleared trackers
+	//	sptCounter reset - init sequencer
+	//	seqPlay set to 1 - start playing
+	//------------------------------------------------------------
     case 18: //seq play
       seqStepT1 = 0;
+	  seqStepT2 = 0;
+	  seqStepT3 = 0;
+	  
       seqTicksT1 = 0;
+	  seqTicksT2 = 0;
+	  seqTicksT3 = 0;
+	  
       stepIndexT1 = 0;
+	  stepIndexT2 = 0;
+	  stepIndexT3 = 0;
+	  
       seqTrackerT1[0] = B10000000; //reset current T1 tracker state
-
-      seqStepT2 = 0;
-      seqTicksT2 = 0;
-      stepIndexT2 = 0;
       seqTrackerT2[0] = B10000000; //reset current T2 tracker state
-
-      seqStepT3 = 0;
-      seqTicksT3 = 0;
-      stepIndexT3 = 0;
       seqTrackerT3[0] = B10000000; //reset current T3 tracker state
 
       sptCounter = 0;
       seqPlay = 1; //start sequencer
-      break;
+    break;
     case 19:
       if (!fn) { //shift seq 1 page (16 steps) to the right (fn == 0)
         if (page == 1) { //page 0 to 1
@@ -930,7 +955,7 @@ void updateUI(byte keyVal) {
           octaveOffset++;
         }
       }
-      break;
+    break;
     case 20:
       if (fn == 0) {  //shift seq 1 page (16 steps) to the left (fn == 0)
         if (page == 1) {        //page 1 to 4
@@ -979,7 +1004,7 @@ void updateUI(byte keyVal) {
           octaveOffset--;
         }
       }
-      break;
+    break;
     case 21: //param select (fn == 0) OR track select (fn == 1) - RIGHTMOST
       if (fn == 0) {
         if (paramsPage != 3) {
@@ -996,7 +1021,7 @@ void updateUI(byte keyVal) {
         bitSet(ledState[0], 1);
         pgChange = B11111111;
       }
-      break;
+    break;
     case 22:  //param select (fn == 0) OR track select (fn == 1) - MIDDLE
       if (fn == 0) {
         if (paramsPage != 2) {
@@ -1013,7 +1038,7 @@ void updateUI(byte keyVal) {
         bitSet(ledState[0], 2);
         pgChange = B11111111;
       }
-      break;
+    break;
     case 23:  //param select (fn == 0) OR track select (fn == 1) - LEFTMOST
       if (fn == 0) {
         if (paramsPage != 1) {
@@ -1030,7 +1055,7 @@ void updateUI(byte keyVal) {
         bitSet(ledState[0], 3);
         pgChange = B11111111;
       }
-      break;
+    break;
     default: //EITHER sequencer buttons [0-15] OR keyboard buttons [24-39]
       if (keyVal >= 0 && keyVal < 16) { //sequencer buttons pressed
         if (keyVal < 8) { //seq 1-8
@@ -1109,7 +1134,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 2: //track 2
                 seqLengthT2 = 16; //change sequencer length
                 maxTicksT2 = 384;
@@ -1120,7 +1145,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 3: //track 3
                 seqLengthT3 = 16; //change sequencer length
                 maxTicksT3 = 384;
@@ -1131,7 +1156,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 26) && (fn == 1)) { //g - seq set to 32 step length
@@ -1147,7 +1172,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 2: //track 1
                 seqLengthT2 = 32; //change sequencer length
                 maxTicksT2 = 768;
@@ -1158,7 +1183,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 3: //track 1
                 seqLengthT3 = 32; //change sequencer length
                 maxTicksT3 = 768;
@@ -1169,7 +1194,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 25) && (fn == 1)) { //g# - seq set to 48 step length
@@ -1185,7 +1210,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 2: //track 1
                 seqLengthT2 = 48; //change sequencer length
                 maxTicksT2 = 1152;
@@ -1196,7 +1221,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 3: //track 1
                 seqLengthT3 = 48; //change sequencer length
                 maxTicksT3 = 1152;
@@ -1207,7 +1232,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 24) && (fn == 1)) { //a - seq set to 64 step length
@@ -1223,7 +1248,7 @@ void updateUI(byte keyVal) {
                   stepIndexT1 = 0;
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 2: //track 1
                 seqLengthT2 = 64; //change sequencer length
                 maxTicksT2 = 1536;
@@ -1234,7 +1259,7 @@ void updateUI(byte keyVal) {
                   stepIndexT2 = 0;
                   seqTrackerT2[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
               case 3: //track 1
                 seqLengthT3 = 64; //change sequencer length
                 maxTicksT3 = 1536;
@@ -1245,7 +1270,7 @@ void updateUI(byte keyVal) {
                   stepIndexT3 = 0;
                   seqTrackerT3[0] = B10000000; //clear current tracker state
                 }
-                break;
+              break;
             }
             seqPlay = 1; //restart sequencer
           } else if ((keyVal == 29) && (fn == 1)) { //f - seq length decremented by 1 step (24 ticks); min. length 1 (24 ticks)
@@ -1264,7 +1289,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
               case 2: //track 1
                 if (maxTicksT2 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1279,7 +1304,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
               case 3: //track 1
                 if (maxTicksT3 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1294,7 +1319,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
             }
           } else if ((keyVal == 28) && (fn == 1)) { //e - seq length incremented by 1 step (24 ticks); max. length 64 (1536 ticks)
             switch (trackSelect) {
@@ -1312,7 +1337,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
               case 2: //track 1
                 if (maxTicksT2 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1327,7 +1352,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
               case 3: //track 1
                 if (maxTicksT3 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1342,7 +1367,7 @@ void updateUI(byte keyVal) {
                   }
                   seqPlay = 1; //restart sequencer
                 }
-                break;
+              break;
             }
           }
         } else { //can only be top keyboard row
@@ -1368,7 +1393,7 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-            break;
+          break;
           case 2:
             if  (!fn) {
               env_valT2 = 0; //reset envelope
@@ -1388,7 +1413,7 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-            break;
+          break;
           case 3:
             if (!fn) {
               env_valT3 = 0; //reset envelope
@@ -1408,10 +1433,10 @@ void updateUI(byte keyVal) {
                 }
               }
             }
-            break;
+          break;
         }
       }
-      break;
+    break;
   }
 }
 //END updateUI()
