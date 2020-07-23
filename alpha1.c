@@ -597,7 +597,7 @@ void loop() {
     if (paramsPage == 3) {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
-     //only updates when caught up w/ pot - on sign change
+					//only updates when caught up w/ pot - on sign change
           if ((bitRead(int(prevParamsBuff[pLoop] - params3_T1[pLoop]), 15) != bitRead(int(paramsBuff[pLoop] - params3_T1[pLoop]), 15)) || (paramsAvg == params3_T1[pLoop])) {
             if (!fn) { //fn not pressed - normal behavior
               bitClear(pgChange, (5 - pLoop));
@@ -632,7 +632,6 @@ void loop() {
     } else if (paramsPage == 2) {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
-    //only updates when caught up w/ pot - on sign change
           if ((bitRead(int(prevParamsBuff[pLoop] - params2_T1[pLoop]), 15) != bitRead(int(paramsBuff[pLoop] - params2_T1[pLoop]), 15)) || (paramsAvg == params2_T1[pLoop])) {
             if (!fn) {
               bitClear(pgChange, (5 - pLoop));
@@ -667,7 +666,6 @@ void loop() {
     } else {
       if (bitRead(pgChange, (5 - pLoop))) {
         if (trackSelect == 1) {
-    //only updates when caught up w/ pot - on sign change
           if ((bitRead(int(prevParamsBuff[pLoop] - params1_T1[pLoop]), 15) != bitRead(int(paramsBuff[pLoop] - params1_T1[pLoop]), 15)) || (paramsAvg == params1_T1[pLoop])) {
             if (!fn) {
               bitClear(pgChange, (5 - pLoop));
@@ -872,115 +870,114 @@ void shiftByte(byte n, byte serOut, byte srClk, byte srLatch) {
 //--------------------------------------------------------------------------------------------------------
 void updateUI(byte keyVal) {
   switch (keyVal) {
-    
-  //case 16 - FN - called on every state change (rising AND falling edge)
-  //------------------------------------------------------------
-  //if fn was previously not pressed, a press is registered
-  //  fn is set to 1
-  //  led states for active track display are set, to reflect active track on page LEDs (as determined by trackSelect)
-  //if fn was previously pressed, a release is registered
-  //  fn is set to 0
-  //  led states for active track display are returned to original states, to reflect active page (as determined by paramsPage)
-  //------------------------------------------------------------
+		//case 16 - FN - called on every state change (rising AND falling edge)
+		//------------------------------------------------------------
+		//if fn was previously not pressed, a press is registered
+		//  fn is set to 1
+		//  led states for active track display are set, to reflect active track on page LEDs (as determined by trackSelect)
+		//if fn was previously pressed, a release is registered
+		//  fn is set to 0
+		//  led states for active track display are returned to original states, to reflect active page (as determined by paramsPage)
+		//------------------------------------------------------------
     case 16:
-  //if fn was pressed (rising edge)
-  //-------------------------------------------------------
-      if (!fn) {
-        fn = 1;
-    //track 1
-    //---------------------------------------------
+			//if fn was pressed (rising edge)
+			//-------------------------------------------------------
+			if (!fn) {
+				fn = 1;
+				//track 1
+				//---------------------------------------------
         if (trackSelect == 1) {
-          bitClear(ledState[0], 3);
-          bitClear(ledState[0], 2);
-          bitSet(ledState[0], 1);
-      switch (paramsPage) {
-      case 3:       //params page 3 (rightmost)
-        ledState[2] = optionStates_T1[4];
-        ledState[1] = optionStates_T1[5];
-      break;
-      case 2:       //params page 2 (middle)
-        ledState[2] = optionStates_T1[2];
-        ledState[1] = optionStates_T1[3];
-      break;
-      case 1:       //params page 1 (leftmost)
-        ledState[2] = optionStates_T1[0];
-        ledState[1] = optionStates_T1[1];
-      break;
-      }
-    //track 2
-    //---------------------------------------------
+					bitClear(ledState[0], 3);
+					bitClear(ledState[0], 2);
+					bitSet(ledState[0], 1);
+					switch (paramsPage) {
+						case 3:       //params page 3 (rightmost)
+							ledState[2] = optionStates_T1[4];
+							ledState[1] = optionStates_T1[5];
+						break;
+						case 2:       //params page 2 (middle)
+							ledState[2] = optionStates_T1[2];
+							ledState[1] = optionStates_T1[3];
+						break;
+						case 1:       //params page 1 (leftmost)
+							ledState[2] = optionStates_T1[0];
+							ledState[1] = optionStates_T1[1];
+						break;
+					}
+				//track 2
+				//---------------------------------------------
         } else if (trackSelect == 2) {
           bitClear(ledState[0], 3);
           bitClear(ledState[0], 1);
           bitSet(ledState[0], 2);
-      switch (paramsPage) {
-      case 3:       //params page 3 (rightmost)
-        ledState[2] = optionStates_T2[4];
-        ledState[1] = optionStates_T2[5];
-      break;
-      case 2:       //params page 2 (middle)
-        ledState[2] = optionStates_T2[2];
-        ledState[1] = optionStates_T2[3];
-      break;
-      case 1:       //params page 1 (leftmost)
-        ledState[2] = optionStates_T2[0];
-        ledState[1] = optionStates_T2[1];
-      break;
-      }
-    //track 3
-    //---------------------------------------------
+					switch (paramsPage) {
+						case 3:       //params page 3 (rightmost)
+							ledState[2] = optionStates_T2[4];
+							ledState[1] = optionStates_T2[5];
+						break;
+						case 2:       //params page 2 (middle)
+							ledState[2] = optionStates_T2[2];
+							ledState[1] = optionStates_T2[3];
+						break;
+						case 1:       //params page 1 (leftmost)
+							ledState[2] = optionStates_T2[0];
+							ledState[1] = optionStates_T2[1];
+						break;
+					}
+				//track 3
+				//---------------------------------------------
         } else {
           bitClear(ledState[0], 2);
           bitClear(ledState[0], 1);
           bitSet(ledState[0], 3);
-        }
-    switch (paramsPage) {
-      case 3:       //params page 3 (rightmost)
-        ledState[2] = optionStates_T3[4];
-        ledState[1] = optionStates_T3[5];
-      break;
-      case 2:       //params page 2 (middle)
-        ledState[2] = optionStates_T3[2];
-        ledState[1] = optionStates_T3[3];
-      break;
-      case 1:       //params page 1 (leftmost)
-        ledState[2] = optionStates_T3[0];
-        ledState[1] = optionStates_T3[1];
-      break;
-      }
-  //if fn was released (falling edge)
-  //-------------------------------------------------------
+					switch (paramsPage) {
+						case 3:       //params page 3 (rightmost)
+							ledState[2] = optionStates_T3[4];
+							ledState[1] = optionStates_T3[5];
+						break;
+						case 2:       //params page 2 (middle)
+							ledState[2] = optionStates_T3[2];
+							ledState[1] = optionStates_T3[3];
+						break;
+						case 1:       //params page 1 (leftmost)
+							ledState[2] = optionStates_T3[0];
+							ledState[1] = optionStates_T3[1];
+						break;
+					}
+				}
+			//if fn was released (falling edge)
+			//-------------------------------------------------------
       } else { 
         fn = 0;
-    //track 1
-    //---------------------------------------------
-        if (paramsPage == 3) {
-          bitClear(ledState[0], 3);
-          bitClear(ledState[0], 2);
-          bitSet(ledState[0], 1);
-    //track 2
-    //---------------------------------------------
-        } else if (paramsPage == 2) {
-          bitClear(ledState[0], 3);
-          bitClear(ledState[0], 1);
-          bitSet(ledState[0], 2);
-    //track 3
-    //---------------------------------------------
-        } else {
-          bitClear(ledState[0], 2);
-          bitClear(ledState[0], 1);
-          bitSet(ledState[0], 3);
-        }
-      }
+				//track 1
+				//---------------------------------------------
+				if (paramsPage == 3) {
+					bitClear(ledState[0], 3);
+					bitClear(ledState[0], 2);
+					bitSet(ledState[0], 1);
+				//track 2
+				//---------------------------------------------
+				} else if (paramsPage == 2) {
+					bitClear(ledState[0], 3);
+					bitClear(ledState[0], 1);
+					bitSet(ledState[0], 2);
+				//track 3
+				//---------------------------------------------
+				} else {
+					bitClear(ledState[0], 2);
+					bitClear(ledState[0], 1);
+					bitSet(ledState[0], 3);
+				}
+			}
     break;
   
-  //case 17 - stop sequencer - called when sequencer stop button pressed
-  //------------------------------------------------------------
-  //seqPlay set to 0 (stops sequencer in ISR)
-  //trackers cleared for each sequence (T1-T3)
-  //sequencer LED states recalculated to account for newly cleared trackers
-  //seqStepTn step counters reset to stopped (0)
-  //------------------------------------------------------------
+		//case 17 - stop sequencer - called when sequencer stop button pressed
+		//------------------------------------------------------------
+		//seqPlay set to 0 (stops sequencer in ISR)
+		//trackers cleared for each sequence (T1-T3)
+		//sequencer LED states recalculated to account for newly cleared trackers
+		//seqStepTn step counters reset to stopped (0)
+		//------------------------------------------------------------
     case 17:
       seqPlay = 0;            //stop sequencer
       seqTrackerT1[seqStepT1 >> 3] = 0; //clear current T1 tracker state
@@ -1001,27 +998,27 @@ void updateUI(byte keyVal) {
       seqStepT3 = 0;  //reset T3 step counter
     break;
   
-  //case 18 - start sequencer - called when sequencer start button pressed
-  //------------------------------------------------------------
-  //active sequencer step set to init state (step 0) for all tracks
-  //sequencer tick counters reset (tick 0) for all tracks
-  //inter-step indeces reset for all tracks (index 0)
-  //sequencer trackers initialized for all tracks - start on step 1
-  //samples per tick counter reset (sptCounter = 0) - initialize sample counter
-  //seqPlay set to 1 - start sequencer (start counting)
-  //------------------------------------------------------------
+		//case 18 - start sequencer - called when sequencer start button pressed
+		//------------------------------------------------------------
+		//active sequencer step set to init state (step 0) for all tracks
+		//sequencer tick counters reset (tick 0) for all tracks
+		//inter-step indeces reset for all tracks (index 0)
+		//sequencer trackers initialized for all tracks - start on step 1
+		//samples per tick counter reset (sptCounter = 0) - initialize sample counter
+		//seqPlay set to 1 - start sequencer (start counting)
+		//------------------------------------------------------------
     case 18: //seq play
-  seqStepT1 = 0;
-    seqStepT2 = 0;
-    seqStepT3 = 0;
+			seqStepT1 = 0;
+			seqStepT2 = 0;
+			seqStepT3 = 0;
     
       seqTicksT1 = 0;
-    seqTicksT2 = 0;
-    seqTicksT3 = 0;
+			seqTicksT2 = 0;
+			seqTicksT3 = 0;
     
       stepIndexT1 = 0;
-    stepIndexT2 = 0;
-    stepIndexT3 = 0;
+			stepIndexT2 = 0;
+			stepIndexT3 = 0;
     
       seqTrackerT1[0] = B10000000; //reset current T1 tracker state
       seqTrackerT2[0] = B10000000; //reset current T2 tracker state
@@ -1031,14 +1028,14 @@ void updateUI(byte keyVal) {
       seqPlay = 1; //start sequencer
     break;
   
-  //case 19 - sequencer page shift right (!fn) | keyboard octave shift +12st (fn)
-  //------------------------------------------------------------
-  //if fn IS NOT currently pressed - sequencer page shifted right by 1 page
-  //  change active sequencer page to next page to the immediate right (wrap around to 1 if on page 4)
-  //  update sequencer page LEDs to reflect newly active page (1-4)
-  //if fn IS currently pressed - octave shift +12st
-  //  if not already at max octave, increment octaveOffset by 1, shifting the keyboard up by 12 semitones
-  //------------------------------------------------------------
+		//case 19 - sequencer page shift right (!fn) | keyboard octave shift +12st (fn)
+		//------------------------------------------------------------
+		//if fn IS NOT currently pressed - sequencer page shifted right by 1 page
+		//  change active sequencer page to next page to the immediate right (wrap around to 1 if on page 4)
+		//  update sequencer page LEDs to reflect newly active page (1-4)
+		//if fn IS currently pressed - octave shift +12st
+		//  if not already at max octave, increment octaveOffset by 1, shifting the keyboard up by 12 semitones
+		//------------------------------------------------------------
     case 19:
       if (!fn) { //shift seq 1 page (16 steps) to the right (fn == 0)
         if (page == 1) { //page 0 to 1
@@ -1051,7 +1048,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 3;
           seqPageA_T3 = 2;
           seqPageB_T3 = 3;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else if (page == 2) { //page 1 to 2
           page = 3;
           bitClear(ledState[0], 6);
@@ -1062,7 +1059,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 5;
           seqPageA_T3 = 4;
           seqPageB_T3 = 5;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else if (page == 3) { //page 2 to 3
           page = 4;
           bitClear(ledState[0], 5);
@@ -1073,7 +1070,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 7;
           seqPageA_T3 = 6;
           seqPageB_T3 = 7;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else {                //page 3 to 0
           page = 1;
           bitClear(ledState[0], 4);
@@ -1092,14 +1089,14 @@ void updateUI(byte keyVal) {
       }
     break;
   
-  //case 20 - sequencer page shift left (!fn) | keyboard octave shift -12st (fn)
-  //------------------------------------------------------------
-  //if fn IS NOT currently pressed - sequencer page shifted left by 1 page
-  //  change active sequencer page to next page to the immediate left (wrap around to 4 if on page 1)
-  //  update sequencer page LEDs to reflect newly active page (1-4)
-  //if fn IS currently pressed - octave shift -12st
-  //  if not already at min octave, decrement octaveOffset by 1, shifting the keyboard down by 12 semitones
-  //------------------------------------------------------------
+		//case 20 - sequencer page shift left (!fn) | keyboard octave shift -12st (fn)
+		//------------------------------------------------------------
+		//if fn IS NOT currently pressed - sequencer page shifted left by 1 page
+		//  change active sequencer page to next page to the immediate left (wrap around to 4 if on page 1)
+		//  update sequencer page LEDs to reflect newly active page (1-4)
+		//if fn IS currently pressed - octave shift -12st
+		//  if not already at min octave, decrement octaveOffset by 1, shifting the keyboard down by 12 semitones
+		//------------------------------------------------------------
     case 20:
       if (!fn) {  //shift seq 1 page (16 steps) to the left (fn == 0)
         if (page == 1) {        //page 1 to 4
@@ -1112,7 +1109,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 7;
           seqPageA_T3 = 6;
           seqPageB_T3 = 7;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else if (page == 2) { //page 2 to 1
           page = 1;
           bitClear(ledState[0], 6);
@@ -1123,7 +1120,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 1;
           seqPageA_T3 = 0;
           seqPageB_T3 = 1;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else if (page == 3) { //page 3 to 2
           page = 2;
           bitClear(ledState[0], 5);
@@ -1134,7 +1131,7 @@ void updateUI(byte keyVal) {
           seqPageB_T2 = 3;
           seqPageA_T3 = 2;
           seqPageB_T3 = 3;
-    //--------------------------------------------------
+				//--------------------------------------------------
         } else {                //page 4 to 3
           page = 3;
           bitClear(ledState[0], 4);
@@ -1173,7 +1170,7 @@ void updateUI(byte keyVal) {
           bitSet(ledState[0], 1);
           paramsPage = 3;
         }
-    //--------------------------------------------------
+			//--------------------------------------------------
       } else {
         trackSelect = 1;
         bitClear(ledState[0], 3);
@@ -1183,17 +1180,17 @@ void updateUI(byte keyVal) {
       }
     break;
   
-  //case 22 - switch to parameter page 2 (middle) (!fn) | switch to track 2 (middle) (fn)
-  //------------------------------------------------------------
-  //if fn IS NOT currently pressed - switch to parameter page 2     1 | [2] | 3
-  //  reset pgChange flags - for parameter catch-up after switch
-  //  change parameter page/track LEDs to reflect newly active page (2)
-  //  set paramsPage to 2 - to set global active parameter page
-  //if fn IS currently pressed - switch to track 2              3 | [2] | 1
-  //  set trackSelect to 2 - to set global active track
-  //  change parameter page/track LEDs to reflect newly active track (2)
-  //  reset pgChange flags - for parameter catch-up after switch
-  //------------------------------------------------------------
+		//case 22 - switch to parameter page 2 (middle) (!fn) | switch to track 2 (middle) (fn)
+		//------------------------------------------------------------
+		//if fn IS NOT currently pressed - switch to parameter page 2     1 | [2] | 3
+		//  reset pgChange flags - for parameter catch-up after switch
+		//  change parameter page/track LEDs to reflect newly active page (2)
+		//  set paramsPage to 2 - to set global active parameter page
+		//if fn IS currently pressed - switch to track 2              3 | [2] | 1
+		//  set trackSelect to 2 - to set global active track
+		//  change parameter page/track LEDs to reflect newly active track (2)
+		//  reset pgChange flags - for parameter catch-up after switch
+		//------------------------------------------------------------
     case 22:  //param select (fn == 0) OR track select (fn == 1) - MIDDLE
       if (!fn) {
         if (paramsPage != 2) {
@@ -1203,7 +1200,7 @@ void updateUI(byte keyVal) {
           bitSet(ledState[0], 2);
           paramsPage = 2;
         }
-    //--------------------------------------------------
+			//--------------------------------------------------
       } else {
         trackSelect = 2;
         bitClear(ledState[0], 3);
@@ -1213,17 +1210,17 @@ void updateUI(byte keyVal) {
       }
     break;
   
-  //case 23 - switch to parameter page 1 (leftmost) (!fn) | switch to track 3 (leftmost) (fn)
-  //------------------------------------------------------------
-  //if fn IS NOT currently pressed - switch to parameter page 1     [1] | 2 | 3
-  //  reset pgChange flags - for parameter catch-up after switch
-  //  change parameter page/track LEDs to reflect newly active page (1)
-  //  set paramsPage to 1 - to set global active parameter page
-  //if fn IS currently pressed - switch to track 2              [3] | 2 | 1
-  //  set trackSelect to 3 - to set global active track
-  //  change parameter page/track LEDs to reflect newly active track (3)
-  //  reset pgChange flags - for parameter catch-up after switch
-  //------------------------------------------------------------
+		//case 23 - switch to parameter page 1 (leftmost) (!fn) | switch to track 3 (leftmost) (fn)
+		//------------------------------------------------------------
+		//if fn IS NOT currently pressed - switch to parameter page 1     [1] | 2 | 3
+		//  reset pgChange flags - for parameter catch-up after switch
+		//  change parameter page/track LEDs to reflect newly active page (1)
+		//  set paramsPage to 1 - to set global active parameter page
+		//if fn IS currently pressed - switch to track 2              [3] | 2 | 1
+		//  set trackSelect to 3 - to set global active track
+		//  change parameter page/track LEDs to reflect newly active track (3)
+		//  reset pgChange flags - for parameter catch-up after switch
+		//------------------------------------------------------------
     case 23:  //param select (fn == 0) OR track select (fn == 1) - LEFTMOST
       if (!fn) {
         if (paramsPage != 1) {
@@ -1233,7 +1230,7 @@ void updateUI(byte keyVal) {
           bitSet(ledState[0], 3);
           paramsPage = 1;
         }
-    //--------------------------------------------------
+			//--------------------------------------------------
       } else {
         trackSelect = 3;
         bitClear(ledState[0], 2);
@@ -1242,22 +1239,21 @@ void updateUI(byte keyVal) {
         pgChange = B11111111;
       }
     break;
-  //EITHER sequencer buttons [0-15] OR keyboard buttons [24-39]
-  //------------------------------------------------------------
+		//EITHER sequencer buttons [0-15] OR keyboard buttons [24-39]
+		//------------------------------------------------------------
     default:
-  //if keyVal is within sequencer button range [0-15] - sequencer button pressed
-  //-------------------------------------------------------
+			//if keyVal is within sequencer button range [0-15] - sequencer button pressed
+			//-------------------------------------------------------
       if (keyVal >= 0 && keyVal < 16) {
-    //if keyVal is between [0-7] - first 8 sequencer buttons
-    //--------------------------------------------------
+				//if keyVal is between [0-7] - first 8 sequencer buttons
+				//--------------------------------------------------
         if (keyVal < 8) {
-    //if led state is ON for pressed sequencer button
-    //---------------------------------------------
+					//if led state is ON for pressed sequencer button
+					//---------------------------------------------
           if (bitRead(ledState[2], (7 - (keyVal % 8)))) {
-      //clear LED state
-            bitClear(ledState[2], (7 - (keyVal % 8)));
-      //if track is 1, 2 or 3 - clears the sequencer step state only for the selected track
-      //----------------------------------------
+            bitClear(ledState[2], (7 - (keyVal % 8)));	//clear LED state
+						//if track is 1, 2 or 3 - clears the sequencer step state only for the selected track
+						//----------------------------------------
             if (trackSelect == 1) {
               bitClear(seqPagesT1[seqPageA_T1], (7 - (keyVal % 8)));
             } else if (trackSelect == 2) {
@@ -1265,13 +1261,12 @@ void updateUI(byte keyVal) {
             } else {
               bitClear(seqPagesT3[seqPageA_T3], (7 - (keyVal % 8)));
             }
-    //if led state is OFF for pressed sequencer button
-    //---------------------------------------------
+					//if led state is OFF for pressed sequencer button
+					//---------------------------------------------
           } else {
-      //set LED state
-            bitSet(ledState[2], (7 - (keyVal % 8)));
-      //if track is 1, 2 or 3 - sets the sequencer step state only for the selected track
-      //----------------------------------------
+            bitSet(ledState[2], (7 - (keyVal % 8)));	//set LED state
+						//if track is 1, 2 or 3 - sets the sequencer step state only for the selected track
+						//----------------------------------------
             if (trackSelect == 1) {
               bitSet(seqPagesT1[seqPageA_T1], (7 - (keyVal % 8)));
             } else if (trackSelect == 2) {
@@ -1280,17 +1275,15 @@ void updateUI(byte keyVal) {
               bitSet(seqPagesT3[seqPageA_T3], (7 - (keyVal % 8)));
             }
           }
-    //------------------------------------------------------------
-    //if keyVal is between [8-15] - second 8 sequencer buttons
-    //--------------------------------------------------
+				//if keyVal is between [8-15] - second 8 sequencer buttons
+				//--------------------------------------------------
         } else { 
-    //if led state is ON for pressed sequencer button
-    //---------------------------------------------
+					//if led state is ON for pressed sequencer button
+					//---------------------------------------------
           if (bitRead(ledState[1], (7 - (keyVal % 8)))) {
-      //clear LED state
-            bitClear(ledState[1], (7 - (keyVal % 8)));
-      //if track is 1, 2 or 3 - clears the sequencer step state only for the selected track
-      //----------------------------------------
+            bitClear(ledState[1], (7 - (keyVal % 8)));	//clear LED state
+						//if track is 1, 2 or 3 - clears the sequencer step state only for the selected track
+						//----------------------------------------
             if (trackSelect == 1) {
               bitClear(seqPagesT1[seqPageB_T1], (7 - (keyVal % 8)));
             } else if (trackSelect == 2) {
@@ -1298,13 +1291,12 @@ void updateUI(byte keyVal) {
             } else {
               bitClear(seqPagesT3[seqPageB_T3], (7 - (keyVal % 8)));
             }
-    //if led state is OFF for pressed sequencer button
-    //---------------------------------------------
+					//if led state is OFF for pressed sequencer button
+					//---------------------------------------------
           } else {
-      //set LED state
-            bitSet(ledState[1], (7 - (keyVal % 8)));
-      //if track is 1, 2 or 3 - sets the sequencer step state only for the selected track
-      //----------------------------------------
+            bitSet(ledState[1], (7 - (keyVal % 8)));	//set LED state
+						//if track is 1, 2 or 3 - sets the sequencer step state only for the selected track
+						//----------------------------------------
             if (trackSelect == 1) {
               bitSet(seqPagesT1[seqPageB_T1], (7 - (keyVal % 8)));
             } else if (trackSelect == 2) {
@@ -1315,42 +1307,41 @@ void updateUI(byte keyVal) {
           }
         }
       } else {
-  //bottom keyboard row - keyVal == [33-24], inclusive, left-> right
-  //C | C# | D | D# | E | F | F# | G | G# | A
-  //33| 32 | 31| 30 | 29| 28| 27 | 26| 25 | 24
-  //-----------------------------------------------------------------
+				//bottom keyboard row - keyVal == [33-24], inclusive, left-> right
+				//C | C# | D | D# | E | F | F# | G | G# | A
+				//33| 32 | 31| 30 | 29| 28| 27 | 26| 25 | 24
+				//-----------------------------------------------------------------
         if (keyVal < 34) {
           noteVal = 3 + (33 - keyVal) + (12 * octaveOffset); //offset of 3 to account for C start | left -> right - bottom C == 0 (normalized)
-      
+					//------------------------------------------------------------
           if ((keyVal == 31) && (fn == 1)) { //if bottom c pressed while fn held
             if (muteValT1 == 0) {
               muteValT1 = 255;
             } else {
               muteValT1 = 0;
             }
-      
+					//------------------------------------------------------------
           } else if ((keyVal == 32) && (fn == 1)) { //if bottom c pressed while fn held
             if (muteValT2 == 0) {
               muteValT2 = 255;
             } else {
               muteValT2 = 0;
             }
-      
+					//------------------------------------------------------------
           } else if ((keyVal == 33) && (fn == 1)) { //if bottom c pressed while fn held
             if (muteValT3 == 0) {
               muteValT3 = 255;
             } else {
               muteValT3 = 0;
             }
-      
-    //f# - seq set to 16 step length
-    //---------------------------------------------
+						
+					//f# - seq set to 16 step length
+					//---------------------------------------------
           } else if ((keyVal == 27) && (fn == 1)) {
             seqPlay = 0; //stop sequencer
             switch (trackSelect) {
-        
-      //track 1
-      //----------------------------------------
+							//track 1
+							//----------------------------------------
               case 1:
                 seqLengthT1 = 16; //set length to 16
                 maxTicksT1 = 384;
@@ -1362,8 +1353,8 @@ void updateUI(byte keyVal) {
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
               break;
-      //track 2
-      //----------------------------------------
+							//track 2
+							//----------------------------------------
               case 2:
                 seqLengthT2 = 16; 
                 maxTicksT2 = 384;
@@ -1375,8 +1366,8 @@ void updateUI(byte keyVal) {
                   seqTrackerT2[0] = B10000000; 
                 }
               break;
-      //track 2
-      //----------------------------------------
+							//track 2
+							//----------------------------------------
               case 3:
                 seqLengthT3 = 16;
                 maxTicksT3 = 384;
@@ -1390,14 +1381,14 @@ void updateUI(byte keyVal) {
               break;
             }
             seqPlay = 1; //restart sequencer
-      
-    //g - seq set to 32 step length
-    //---------------------------------------------
+						
+					//g - seq set to 32 step length
+					//---------------------------------------------
           } else if ((keyVal == 26) && (fn == 1)) {
             seqPlay = 0; 
             switch (trackSelect) {
-      //track 1
-      //----------------------------------------
+							//track 1
+							//----------------------------------------
               case 1:
                 seqLengthT1 = 32; //set length to 32
                 maxTicksT1 = 768;
@@ -1409,9 +1400,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT1[0] = B10000000; 
                 }
               break;
-      //track 2
-      //----------------------------------------
-              case 2: //track 2
+							//track 2
+							//----------------------------------------
+              case 2: 
                 seqLengthT2 = 32; 
                 maxTicksT2 = 768;
                 seqLimT2 = 3;
@@ -1422,9 +1413,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT2[0] = B10000000; 
                 }
               break;
-      //track 3
-      //----------------------------------------
-              case 3: //track 3
+							//track 3
+							//----------------------------------------
+              case 3: 
                 seqLengthT3 = 32; 
                 maxTicksT3 = 768;
                 seqLimT3 = 3;
@@ -1438,14 +1429,14 @@ void updateUI(byte keyVal) {
             }
             seqPlay = 1;
       
-    //g# - seq set to 48 step length
-    //---------------------------------------------
+					//g# - seq set to 48 step length
+					//---------------------------------------------
           } else if ((keyVal == 25) && (fn == 1)) { 
             seqPlay = 0; 
             switch (trackSelect) {
-      //track 2
-      //----------------------------------------
-              case 1: //track 1
+							//track 2
+							//----------------------------------------
+              case 1: 
                 seqLengthT1 = 48; //set length to 48
                 maxTicksT1 = 1152;
                 seqLimT1 = 5;
@@ -1456,9 +1447,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT1[0] = B10000000;
                 }
               break;
-      //track 2
-      //----------------------------------------
-              case 2: //track 2
+							//track 2
+							//----------------------------------------
+              case 2:
                 seqLengthT2 = 48;
                 maxTicksT2 = 1152;
                 seqLimT2 = 5;
@@ -1469,9 +1460,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT2[0] = B10000000; 
                 }
               break;
-      //track 3
-      //----------------------------------------
-              case 3: //track 3
+							//track 3
+							//----------------------------------------
+              case 3:
                 seqLengthT3 = 48; 
                 maxTicksT3 = 1152;
                 seqLimT3 = 5;
@@ -1485,14 +1476,14 @@ void updateUI(byte keyVal) {
             }
             seqPlay = 1;
       
-    //a - seq set to 64 step length
-    //---------------------------------------------
+					//a - seq set to 64 step length
+					//---------------------------------------------
           } else if ((keyVal == 24) && (fn == 1)) { 
             seqPlay = 0; 
             switch (trackSelect) {
-      //track 1
-      //----------------------------------------
-              case 1: //track 1
+							//track 1
+							//----------------------------------------
+              case 1:
                 seqLengthT1 = 64; //set length to 64
                 maxTicksT1 = 1536;
                 seqLimT1 = 7;
@@ -1503,9 +1494,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT1[0] = B10000000; //clear current tracker state
                 }
               break;
-      //track 2
-      //----------------------------------------
-              case 2: //track 2
+							//track 2
+							//----------------------------------------
+              case 2:
                 seqLengthT2 = 64; 
                 maxTicksT2 = 1536;
                 seqLimT2 = 7;
@@ -1516,9 +1507,9 @@ void updateUI(byte keyVal) {
                   seqTrackerT2[0] = B10000000; 
                 }
               break;
-      //track 3
-      //----------------------------------------
-              case 3: //track 3
+							//track 3
+							//----------------------------------------
+              case 3:
                 seqLengthT3 = 64; 
                 maxTicksT3 = 1536;
                 seqLimT3 = 7;
@@ -1635,22 +1626,22 @@ void updateUI(byte keyVal) {
         
             }
           }
-    //top keyboard row - keyVal == [34-38], inclusive, left-> right
-    //A# | B | C | C# | D |
-    //34 | 35| 36| 37 | 38|
-    //-----------------------------------------------------------------   
+			//top keyboard row - keyVal == [34-38], inclusive, left-> right
+			//A# | B | C | C# | D |
+			//34 | 35| 36| 37 | 38|
+			//-----------------------------------------------------------------   
         } else { 
           noteVal = 3 + (keyVal - 24) + (12 * octaveOffset);
         }
     
-    //triggers note on keyboard press, for currently selected track
-      //recalculates tuning word
-      //triggers envelope
-    //also programs sequencer step by reading the matrix state & setting the note if held
-    //----------------------------------------------------------------------
+				//triggers note on keyboard press, for currently selected track
+					//recalculates tuning word
+					//triggers envelope
+				//also programs sequencer step by reading the matrix state & setting the note if held
+				//----------------------------------------------------------------------
         switch (trackSelect) {
-    //track 1
-    //----------------------------------------------------------------- 
+					//track 1
+					//----------------------------------------------------------------- 
           case 1:
             if (!fn) {                //only trigger note if fn not held
               env_valT1 = 0;              //reset envelope (silence note before tword change)
@@ -1671,8 +1662,8 @@ void updateUI(byte keyVal) {
               }
             }
           break;
-    //track 2
-    //----------------------------------------------------------------- 
+					//track 2
+					//----------------------------------------------------------------- 
           case 2:
             if  (!fn) {
               env_valT2 = 0; 
@@ -1693,8 +1684,8 @@ void updateUI(byte keyVal) {
               }
             }
           break;
-    //track 3
-    //----------------------------------------------------------------- 
+					//track 3
+					//----------------------------------------------------------------- 
           case 3:
             if (!fn) {
               env_valT3 = 0; 
