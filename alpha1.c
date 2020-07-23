@@ -82,14 +82,14 @@ byte paramPins[] = {      //pin declarations for analog inputs
 //  each overflow of sptCounter corresponds to a single "tick" of the sequencer - thus triggering a tick advance
 //  all this together relates the bpm to the rate at which the sequencer is incremented
 //    and thus, the sequencer is given a heartbeat
-//     ←-___←↑→___-→
+//     ←-___←↑→__-→
 //    ←-///π\//π \\-→
 //    ←-\\π↓|↑|↓π//-→
 //     ←-\\π+r+π//-→
 //      ←-\\π+π//-→
 //       ←-\\↑//-→
-//      ←-\π/-→
-//       ←-↓-→
+//        ←-\π/-→
+//         ←-↓-→
 //--------------------------------------------------------------------------------------------------------
 volatile float bpm = 120.0;                             //init to 120bpm
 volatile float tps = ((bpm / 60.0) * 4 * 24);           //ticks per second - to relate the sequencer to the clock - 16th note resolution
