@@ -89,7 +89,8 @@ byte paramPins[] = {      //pin declarations for analog inputs
 //      ←-\\π+π//-→
 //       ←-\\↑//-→
 //        ←-\π/-→
-//         ←-↓-→
+//         ←-|-→
+//          ←↓→
 //--------------------------------------------------------------------------------------------------------
 volatile float bpm = 120.0;                             //init to 120bpm
 volatile float tps = ((bpm / 60.0) * 4 * 24);           //ticks per second - to relate the sequencer to the clock - 16th note resolution
@@ -369,11 +370,11 @@ byte matrixStateB[] = { //buffer for matrix state - for input filtering (edge de
 };
 
 //track option state variables
-//3 integers per track
-//each bit 15-0 represents the binary state of the associated option
-//  an "option" can be anything from envelope shape to scale select
-//  or even a sample of abstracted size representing a binary waveform (pwm-eque)
-//there are three option ints per track - one per page
+//6 bytes per track
+//each bit 7-0 of each byte represents the binary state of the associated option
+//  an "option" can be anything from envelope shape to keyboard scale select
+//  or even the state of sample of abstracted size representing a binary waveform (pwm-eque)
+//there are six option bytes per track - two per page
 //  thus, there are 16 binary options per page; 48 per track; and 144 in total
 //--------------------------------------------------------------------------------------------------------
 byte optionStates_T1[] {
@@ -512,14 +513,13 @@ byte ledState[] = {  //instantaneous states of all LEDs
 
 //misc. variables
 //--------------------------------------------------------------------------------------------------------
-byte fn = 0;  //instantaneous state of function key (for accessing alternate functions)
+byte fn = 0;            //instantaneous state of function key (for accessing alternate functions)
 char octaveOffset = 0;  //offset in +/- |
-byte paramsPage = 3; //active (selected) parameter page
+byte paramsPage = 3;    //active (selected) parameter page
 volatile byte trackSelect = 1; //active (selected) track (for param assignment)
 bool T1_hasSwitched = 1;  //track 1 is starting track, so flag instantly set
 bool T2_hasSwitched = 0;  //T2 and T3 flags init to 0; set to 1 when corresponding track switched to
 bool T3_hasSwitched = 0;  //only set once - really only to ensure proper pot behavior
-bool ledOn = 1;
 
 //END declarations
 //--------------------------------------------------------------------------------------------------------
@@ -759,8 +759,8 @@ void loop() {
         bitSet(matrixStateB[1], (7 - colCount));
         updateUI(keyVal);
       }
-    } else if (keyVal == 16) {  //fn not pressed
-      if (bitRead(matrixStateB[1], (7 - colCount))) { //if fn was previously pressed
+    } else if (keyVal == 16) {  
+      if (bitRead(matrixStateB[1], (7 - colCount))) {   //if fn was previously pressed
         bitClear(matrixState[1], (7 - colCount));
         bitClear(matrixStateB[1], (7 - colCount));
         updateUI(keyVal);
@@ -1526,6 +1526,8 @@ void updateUI(byte keyVal) {
       
           } else if ((keyVal == 29) && (fn == 1)) { //f - seq length decremented by 1 step (24 ticks); min. length 1 (24 ticks)
             switch (trackSelect) {
+              //track 1
+              //----------------------------------------
               case 1: //track 1
                 if (maxTicksT1 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
@@ -1541,8 +1543,9 @@ void updateUI(byte keyVal) {
                   seqPlay = 1; //restart sequencer
                 }
               break;
-        
-              case 2: //track 1
+              //track 2
+              //----------------------------------------
+              case 2:
                 if (maxTicksT2 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
                   seqLengthT2 = seqLengthT2 - 1;
@@ -1557,8 +1560,9 @@ void updateUI(byte keyVal) {
                   seqPlay = 1; //restart sequencer
                 }
               break;
-        
-              case 3: //track 1
+              //track 3
+              //----------------------------------------
+              case 3:
                 if (maxTicksT3 > 24) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
                   seqLengthT3 = seqLengthT3 - 1;
@@ -1577,7 +1581,9 @@ void updateUI(byte keyVal) {
             }
           } else if ((keyVal == 28) && (fn == 1)) { //e - seq length incremented by 1 step (24 ticks); max. length 64 (1536 ticks)
             switch (trackSelect) {
-              case 1: //track 1
+              //track 1
+              //----------------------------------------
+              case 1:
                 if (maxTicksT1 < 1536) { //don't do anything if step length is 64
                   seqPlay = 0; //stop sequencer
                   seqLengthT1 = seqLengthT1 + 1;
@@ -1592,8 +1598,9 @@ void updateUI(byte keyVal) {
                   seqPlay = 1; //restart sequencer
                 }
               break;
-        
-              case 2: //track 1
+              //track 2
+              //----------------------------------------
+              case 2:
                 if (maxTicksT2 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
                   seqLengthT2 = seqLengthT2 + 1;
@@ -1608,8 +1615,9 @@ void updateUI(byte keyVal) {
                   seqPlay = 1; //restart sequencer
                 }
               break;
-        
-              case 3: //track 1
+              //track 3
+              //----------------------------------------
+              case 3:
                 if (maxTicksT3 < 1536) { //don't do anything if step length is 1
                   seqPlay = 0; //stop sequencer
                   seqLengthT3 = seqLengthT3 + 1;
@@ -1624,9 +1632,9 @@ void updateUI(byte keyVal) {
                   seqPlay = 1; //restart sequencer
                 }
               break;
-        
             }
           }
+         
         //top keyboard row - keyVal == [34-38], inclusive, left-> right
         //A# | B | C | C# | D |
         //34 | 35| 36| 37 | 38|
