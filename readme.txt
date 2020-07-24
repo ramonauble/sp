@@ -28,13 +28,3 @@ this project has a twofold purpose;
   this project is intended in part as practical education, to communicate the miniutae of how digital synthesis works "under the hood"
   i take deliberate care in my approach to inline annotation & commenting, to make my code both unambiguous & approachable
   post-alpha i will be packaging the fundamentals of my codebase into an arduino library
-  
-//
-//
-//
-//     
-//      
-//      
-//        
-//         
-//          
