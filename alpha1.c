@@ -1239,6 +1239,7 @@ void updateUI(byte keyVal) {
         pgChange = B11111111;
       }
     break;
+		
 		//EITHER sequencer buttons [0-15] OR keyboard buttons [24-39]
 		//------------------------------------------------------------
     default:
