@@ -28,7 +28,7 @@ this project has a twofold purpose;
     • i love synthesizers with my whole entire heart - this project was borne out of passion
   • 2: for the sake of others
     • this project is intended in part as practical education
-      to communicate the miniutae of how digital synthesis works "under the hood"
+      to communicate the miniutae of how rudimentary digital synthesis works "under the hood"
     • i take deliberate care in my approach to inline annotation & commenting,
       to make my code both unambiguous & approachable
     • post-alpha i will be packaging the fundamentals of my codebase into an arduino library
